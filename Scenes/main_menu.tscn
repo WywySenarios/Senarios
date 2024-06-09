@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmpuh4k3usl1l"]
+
+[ext_resource type="Script" path="res://Scenes/main_menu.gd" id="1_ovtqs"]
+
+[node name="Node" type="Node"]
+script = ExtResource("1_ovtqs")
+
+[node name="Button" type="Button" parent="."]
+offset_left = 178.0
+offset_top = 258.0
+offset_right = 295.0
+offset_bottom = 289.0
+text = "Play the game"
+
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
