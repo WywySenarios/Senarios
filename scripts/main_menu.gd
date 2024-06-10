@@ -12,4 +12,4 @@ func _process(delta):
 
 
 func _on_button_button_down():
-	pass # Replace with function body.
+	get_tree().change_scene_to_file("res://")
