@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://scenes/level_select.gd" id="1_0a2fv"]
 [ext_resource type="Script" path="res://scripts/level_select/level_select_camera.gd" id="1_wmjfr"]
 
-[node name="Node" type="Node"]
+[node name="Node" type="Node" groups=["draggable"]]
 script = ExtResource("1_0a2fv")
 
-[node name="Camera2D" type="Camera2D" parent="." groups=["draggable"]]
+[node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("1_wmjfr")
 
 [node name="Button" type="Button" parent="."]
