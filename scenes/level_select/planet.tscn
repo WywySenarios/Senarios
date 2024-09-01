@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://bugqujrowi7xs"]
+
+[ext_resource type="Script" path="res://scripts/level_select/planet.gd" id="1_5hiby"]
+
+[node name="Planet" type="Node2D"]
+script = ExtResource("1_5hiby")
+
+[node name="Button" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 6
+icon_alignment = 1
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+
+[node name="Timer" type="Timer" parent="."]
+
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

@@ -1,0 +1,185 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0cn1pui1hlp4"]
+
+[ext_resource type="Script" path="res://scripts/level_select_ui.gd" id="1_2k1hx"]
+
+[node name="level_select_UI" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2k1hx")
+
+[node name="Mission" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Planet Name" type="Label" parent="Mission"]
+layout_mode = 1
+offset_right = 204.0
+offset_bottom = 23.0
+
+[node name="Mission_Rect" type="ColorRect" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -403.0
+offset_bottom = -191.0
+color = Color(0.293504, 0.828482, 0.370183, 1)
+
+[node name="Button 1" type="Button" parent="Mission/Mission_Rect"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -8.0
+offset_right = 8.0
+grow_vertical = 0
+text = "1"
+
+[node name="Button 2" type="Button" parent="Mission/Mission_Rect"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -8.0
+offset_right = 8.0
+grow_vertical = 0
+text = "2"
+
+[node name="Button 3" type="Button" parent="Mission/Mission_Rect"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -8.0
+offset_right = 8.0
+grow_vertical = 0
+text = "3"
+
+[node name="Button 4" type="Button" parent="Mission/Mission_Rect"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "4"
+
+[node name="Backward" type="Button" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -568.0
+offset_bottom = -204.0
+
+[node name="Preceeding" type="Button" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -568.0
+offset_bottom = -204.0
+
+[node name="Current" type="Button" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -568.0
+offset_bottom = -204.0
+
+[node name="Upcoming" type="Button" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -568.0
+offset_bottom = -204.0
+
+[node name="Forward" type="Button" parent="Mission"]
+layout_mode = 0
+offset_left = -576.0
+offset_top = -212.0
+offset_right = -568.0
+offset_bottom = -204.0
+
+[node name="Deck_Select" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 476.0
+offset_top = -228.0
+offset_right = 576.0
+offset_bottom = -181.0
+
+[node name="Prompt" type="Label" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Deck Options" type="Label" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "aaaaaaaaaaa"
+
+[node name="Button 1" type="Button" parent="Deck_Select/Deck Options"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "1"
+
+[node name="Button 2" type="Button" parent="Deck_Select/Deck Options"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "2"
+
+[node name="Button 3" type="Button" parent="Deck_Select/Deck Options"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "3"
+
+[node name="Button 4" type="Button" parent="Deck_Select/Deck Options"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "4"
+
+[node name="Backward" type="Button" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Preceeding" type="Button" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Current" type="Button" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Upcoming" type="Button" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Foward" type="Button" parent="Deck_Select"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="Ready Button" type="Button" parent="."]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[connection signal="button_down" from="Mission/Mission_Rect/Button 1" to="." method="on_button_down" binds= ["mission", 1]]
+[connection signal="button_down" from="Mission/Mission_Rect/Button 2" to="." method="on_button_down" binds= ["mission", 2]]
+[connection signal="button_down" from="Mission/Mission_Rect/Button 3" to="." method="on_button_down" binds= ["mission", 3]]
+[connection signal="button_down" from="Mission/Mission_Rect/Button 4" to="." method="on_button_down" binds= ["mission", 4]]
+[connection signal="button_down" from="Deck_Select/Deck Options/Button 1" to="." method="on_button_down" binds= ["deck", 1]]
+[connection signal="button_down" from="Deck_Select/Deck Options/Button 2" to="." method="on_button_down" binds= ["deck", 2]]
+[connection signal="button_down" from="Deck_Select/Deck Options/Button 3" to="." method="on_button_down" binds= ["deck", 3]]
+[connection signal="button_down" from="Deck_Select/Deck Options/Button 4" to="." method="on_button_down" binds= ["deck", 4.0]]
+[connection signal="button_down" from="Ready Button" to="." method="_on_ready_button_button_down"]

@@ -2,3 +2,6 @@
 .godot/
 
 .sln
+
+# ignore all drawing files
+.kra

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://l6f4hac8biah"]
+
+[ext_resource type="Texture2D" uid="uid://d2wall8voukvs" path="res://assets/cards/card_images/card_image-Wywy-Revolution-Sniper.png" id="1_6r6mk"]
+
+[node name="deck_maker_card" type="Node2D"]
+
+[node name="CardImage-wywy-revolution-sniper" type="Sprite2D" parent="."]
+position = Vector2(581, 176)
+texture = ExtResource("1_6r6mk")

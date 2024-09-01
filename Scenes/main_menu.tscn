@@ -1,15 +1,21 @@
-[gd_scene load_steps=2 format=3 uid="uid://dmpuh4k3usl1l"]
+[gd_scene load_steps=3 format=3 uid="uid://dmpuh4k3usl1l"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_ovtqs"]
+[ext_resource type="Texture2D" uid="uid://cyebdsx2yg0we" path="res://assets/main_menu.png" id="2_tu0g1"]
 
 [node name="Node" type="Node"]
 script = ExtResource("1_ovtqs")
 
+[node name="MainMenu" type="Sprite2D" parent="."]
+position = Vector2(575.889, 323.375)
+scale = Vector2(0.300347, 0.300347)
+texture = ExtResource("2_tu0g1")
+
 [node name="Button" type="Button" parent="."]
-offset_left = 178.0
-offset_top = 258.0
-offset_right = 295.0
-offset_bottom = 289.0
+offset_left = 323.0
+offset_top = 448.0
+offset_right = 629.0
+offset_bottom = 561.0
 text = "Play the game"
 
 [connection signal="button_down" from="Button" to="." method="_on_button_button_down"]

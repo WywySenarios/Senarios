@@ -1,0 +1,88 @@
+[gd_scene load_steps=16 format=3 uid="uid://cvhm5x1f535a8"]
+
+[ext_resource type="Script" path="res://scripts/level_select.gd" id="1_kmg4w"]
+[ext_resource type="PackedScene" uid="uid://bugqujrowi7xs" path="res://scenes/level_select/planet.tscn" id="2_blyx7"]
+[ext_resource type="Texture2D" uid="uid://ccnrjobs06q6o" path="res://assets/celestial_bodies/placeholder_planet (1).jpeg" id="3_oddvb"]
+[ext_resource type="Script" path="res://scripts/level_select/mission.gd" id="4_n0r8t"]
+[ext_resource type="Script" path="res://scripts/level_select/celestial_body.gd" id="5_31i6x"]
+[ext_resource type="Texture2D" uid="uid://byy7x4qkdqwo4" path="res://assets/celestial_bodies/placeholder_satellite.jpg" id="6_o84jk"]
+[ext_resource type="Script" path="res://scripts/Camera.gd" id="7_2js3u"]
+[ext_resource type="PackedScene" uid="uid://d0cn1pui1hlp4" path="res://scenes/level_select/level_select_ui.tscn" id="8_6m3bq"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_v6ip0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_oddvb")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="Resource" id="Resource_a5i3k"]
+script = ExtResource("4_n0r8t")
+scene_path = "res://scenes/main_menu.tscn"
+name = "mission 1"
+
+[sub_resource type="Resource" id="Resource_tuyaw"]
+script = ExtResource("4_n0r8t")
+scene_path = "res://scenes/main_menu.tscn"
+name = "mission 2"
+
+[sub_resource type="Resource" id="Resource_rutql"]
+script = ExtResource("4_n0r8t")
+scene_path = "res://scenes/main_menu.tscn"
+name = "mission 3"
+
+[sub_resource type="Resource" id="Resource_g5ic4"]
+script = ExtResource("5_31i6x")
+name = "Wywyia"
+size = Vector2(400, 400)
+object_type = "planet"
+image = ExtResource("3_oddvb")
+idle_animation = SubResource("SpriteFrames_v6ip0")
+missions = Array[ExtResource("4_n0r8t")]([SubResource("Resource_a5i3k"), SubResource("Resource_tuyaw"), SubResource("Resource_rutql")])
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lgsf6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_o84jk")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="Resource" id="Resource_x0l02"]
+script = ExtResource("5_31i6x")
+name = "Space Station 1"
+size = Vector2(40, 40)
+object_type = "satellite"
+image = ExtResource("6_o84jk")
+idle_animation = SubResource("SpriteFrames_lgsf6")
+missions = Array[ExtResource("4_n0r8t")]([])
+
+[node name="level_select" type="Node"]
+script = ExtResource("1_kmg4w")
+planet_visibility_zoom_factor = -75.0
+satelite_visibility_zoom_factor = 6.0
+
+[node name="Wywyia" parent="." instance=ExtResource("2_blyx7")]
+attributes = SubResource("Resource_g5ic4")
+
+[node name="Space Station 1" parent="." instance=ExtResource("2_blyx7")]
+position = Vector2(327, 183)
+attributes = SubResource("Resource_x0l02")
+
+[node name="Physics Camera" type="CharacterBody2D" parent="." groups=["draggable"]]
+script = ExtResource("7_2js3u")
+focus_time = 0.5
+
+[node name="HUD" parent="Physics Camera" instance=ExtResource("8_6m3bq")]
+visibility_layer = 3
+
+[node name="Camera" type="Camera2D" parent="Physics Camera"]
+
+[connection signal="zoom" from="Physics Camera" to="." method="_on_physics_camera_zoom"]
