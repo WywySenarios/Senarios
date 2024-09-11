@@ -4,7 +4,9 @@ var missions = []
 var mission_page_number = 0
 var current_scroll = 0
 var num_slides
+
 var screen_size = Vector2.ZERO
+var selection_button_size = Vector2.ZERO
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -19,6 +21,9 @@ func _process(delta):
 func reprocess_screen_size(_screen_size):
 	screen_size = _screen_size
 	size = _screen_size
+	selection_button_size.x = screen_size.x / 4.0
+	selection_button_size.y = screen_size.y / 6.0
+	
 	$"Mission/Planet Name".position = screen_size * -0.5
 	
 	$"Mission/Mission_Rect".size.x = screen_size.x * (1/6)
@@ -27,23 +32,24 @@ func reprocess_screen_size(_screen_size):
 	
 	var a = 0
 	for b in $"Mission/Mission_Rect".get_children():
-		b.size.x = screen_size.x / 4.0
-		b.size.y = screen_size.y / 6.0
+		b.size = selection_button_size
 		b.position.y = screen_size.y * a / 6.0
 		a += 1
 	
 	
 	# Deck options position & sizing
+	$"Deck_Select/Prompt".position.x = screen_size.x * 0.5
+	$"Deck_Select/Prompt".position.y = screen_size.y * -0.5
 	
 	$"Deck_Select/Deck Options".size.x = screen_size.x * (1.0 / 6.0)
 	$"Deck_Select/Deck Options".position.x = screen_size.x * (0.5 - (1.0 / 4.0))
+	#$"Deck_Select/Deck Options".position.x = 0
 	$"Deck_Select/Deck Options".position.y = $"Mission/Mission_Rect".position.y
 	
 	a = 0
 	for b in $"Deck_Select/Deck Options".get_children():
-		b.size.x = screen_size.x / 4.0
-		b.size.y = screen_size.y / 6.0
-		#b.position.y = screen_size.y * a / 6.0
+		b.size = selection_button_size
+		b.position.y = screen_size.y * a / 6.0
 		a += 1
 	
 	
@@ -51,7 +57,7 @@ func reprocess_screen_size(_screen_size):
 	$"Ready Button".position.x = -screen_size.x * 1.0 / 8.0
 	$"Ready Button".position.y = -screen_size.y * (0.5 - 1.0 / 6.0)
 	$"Ready Button".size.x = screen_size.x / 4.0
-	$"Ready Button".size.y = screen_size.y  / 6.0
+	$"Ready Button".size.y = screen_size.y / 6.0
 
 func focus(node):
 	$"Mission/Planet Name".text = node.attributes.name

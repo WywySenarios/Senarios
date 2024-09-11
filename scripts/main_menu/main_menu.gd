@@ -9,6 +9,5 @@ func _ready():
 func _process(delta):
 	pass
 
-
-func _on_button_button_down():
-	get_tree().change_scene_to_file("res://scenes/level_select/level_select.tscn")
+func _on_button_down(type):
+	get_tree().change_scene_to_file("res://scenes/" + type + "/" + type + ".tscn")

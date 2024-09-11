@@ -1,12 +1,12 @@
 [gd_scene load_steps=16 format=3 uid="uid://cvhm5x1f535a8"]
 
-[ext_resource type="Script" path="res://scripts/level_select.gd" id="1_kmg4w"]
+[ext_resource type="Script" path="res://scripts/level_select/level_select.gd" id="1_kmg4w"]
 [ext_resource type="PackedScene" uid="uid://bugqujrowi7xs" path="res://scenes/level_select/planet.tscn" id="2_blyx7"]
 [ext_resource type="Texture2D" uid="uid://ccnrjobs06q6o" path="res://assets/celestial_bodies/placeholder_planet (1).jpeg" id="3_oddvb"]
 [ext_resource type="Script" path="res://scripts/level_select/mission.gd" id="4_n0r8t"]
 [ext_resource type="Script" path="res://scripts/level_select/celestial_body.gd" id="5_31i6x"]
 [ext_resource type="Texture2D" uid="uid://byy7x4qkdqwo4" path="res://assets/celestial_bodies/placeholder_satellite.jpg" id="6_o84jk"]
-[ext_resource type="Script" path="res://scripts/Camera.gd" id="7_2js3u"]
+[ext_resource type="Script" path="res://scripts/level_select/Camera.gd" id="7_2js3u"]
 [ext_resource type="PackedScene" uid="uid://d0cn1pui1hlp4" path="res://scenes/level_select/level_select_ui.tscn" id="8_6m3bq"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_v6ip0"]
@@ -76,7 +76,7 @@ attributes = SubResource("Resource_g5ic4")
 position = Vector2(327, 183)
 attributes = SubResource("Resource_x0l02")
 
-[node name="Physics Camera" type="CharacterBody2D" parent="." groups=["draggable"]]
+[node name="Physics Camera" type="CharacterBody2D" parent="." groups=["Screen Proportion Dependant", "draggable"]]
 script = ExtResource("7_2js3u")
 focus_time = 0.5
 

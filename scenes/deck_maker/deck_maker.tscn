@@ -1,3 +1,58 @@
-[gd_scene format=3 uid="uid://q1qr8p5b068p"]
+[gd_scene load_steps=8 format=3 uid="uid://q1qr8p5b068p"]
 
-[node name="Node2D" type="Node2D"]
+[ext_resource type="Script" path="res://scripts/deck_maker/deck_maker.gd" id="1_0qm7y"]
+[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://scenes/deck_maker/deck_maker_card.tscn" id="1_bi0u3"]
+[ext_resource type="Texture2D" uid="uid://dcxprxb62qkle" path="res://assets/cards/card_images/entity_wywy_wywySwordsman.jpg" id="2_csa3g"]
+[ext_resource type="Script" path="res://scripts/card/card.gd" id="3_xsx3l"]
+[ext_resource type="Script" path="res://scripts/Deck Area.gd" id="4_xps3f"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_urkfn"]
+size = Vector2(1152, 234)
+
+[sub_resource type="Resource" id="Resource_djhsq"]
+script = ExtResource("3_xsx3l")
+name = "Wywy Swordsman"
+cardType = "Entity"
+generation = 0
+cost = 5.0
+type = Array[String](["Wywy"])
+image = ExtResource("2_csa3g")
+
+[node name="Node2D" type="Node2D" groups=["Screen Proportion Dependant"]]
+script = ExtResource("1_0qm7y")
+
+[node name="Deck Area" type="StaticBody2D" parent="." groups=["droppable"]]
+visible = false
+script = ExtResource("4_xps3f")
+
+[node name="ColorRect" type="ColorRect" parent="Deck Area"]
+offset_right = 1152.0
+offset_bottom = 234.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Deck Area"]
+position = Vector2(576, 117)
+shape = SubResource("RectangleShape2D_urkfn")
+
+[node name="deck_maker_card" parent="." instance=ExtResource("1_bi0u3")]
+position = Vector2(205, 281)
+card = SubResource("Resource_djhsq")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+
+[node name="GUI Band" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -31.0
+offset_top = -10.0
+offset_right = 31.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2

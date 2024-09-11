@@ -34,11 +34,11 @@ func hide_group(group_name):
 	get_tree().call_group(group_name, "hide")
 
 func show_group(group_name):
-	get_tree().call_group(group_name, "is_in_view", $"Physics Camera/Camera".position, $"Physics Camera".screen_size / $"Physics Camera/Camera".zoom.x)
+	get_tree().call_group(group_name, "is_in_view", $"Physics Camera/Camera".position, Global.screen_size / $"Physics Camera/Camera".zoom.x)
 
 func view_changed(): # function called by $"Physics Camera" when an object has the potential to have moved on or off screen
 	for i in active_groups:
-		get_tree().call_group(i, "is_in_view", $"Physics Camera/Camera".position, $"Physics Camera".screen_size / $"Physics Camera/Camera".zoom.x)
+		get_tree().call_group(i, "is_in_view", $"Physics Camera/Camera".position, Global.screen_size / $"Physics Camera/Camera".zoom.x)
 
 func focus(node):
 	$"Physics Camera".focus(node)

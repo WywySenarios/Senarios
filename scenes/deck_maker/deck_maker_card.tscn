@@ -1,9 +1,36 @@
-[gd_scene load_steps=2 format=3 uid="uid://l6f4hac8biah"]
+[gd_scene load_steps=3 format=3 uid="uid://l6f4hac8biah"]
 
-[ext_resource type="Texture2D" uid="uid://d2wall8voukvs" path="res://assets/cards/card_images/card_image-Wywy-Revolution-Sniper.png" id="1_6r6mk"]
+[ext_resource type="Script" path="res://scripts/deck_maker/deck_maker_card.gd" id="1_cj40t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y2pvw"]
+size = Vector2(150, 50)
 
 [node name="deck_maker_card" type="Node2D"]
+script = ExtResource("1_cj40t")
 
-[node name="CardImage-wywy-revolution-sniper" type="Sprite2D" parent="."]
-position = Vector2(581, 176)
-texture = ExtResource("1_6r6mk")
+[node name="deck_maker_card" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="deck_maker_card"]
+shape = SubResource("RectangleShape2D_y2pvw")
+
+[node name="card_head" type="TextureRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -25.0
+offset_right = 675.0
+offset_bottom = 225.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.2, 0.2)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+stretch_mode = 3
+
+[connection signal="body_entered" from="deck_maker_card" to="." method="_on_deck_maker_card_body_entered"]
+[connection signal="body_exited" from="deck_maker_card" to="." method="_on_deck_maker_card_body_exited"]
+[connection signal="mouse_entered" from="deck_maker_card" to="." method="_on_deck_maker_card_mouse_entered"]
+[connection signal="mouse_exited" from="deck_maker_card" to="." method="_on_deck_maker_card_mouse_exited"]

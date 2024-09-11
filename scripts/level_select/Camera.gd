@@ -7,8 +7,6 @@ extends CharacterBody2D
 # maybe 0.01 is better?
 @export var movement_deadzone : float = 0.05 # percentage of screen size
 
-var screen_size
-
 var dragging = false
 var moving_time = 0
 var mouse_prev_pos
@@ -25,15 +23,14 @@ signal screen_size_update()
 signal update_activity(pos, max_distance)
 
 func _ready():
-	reprocess_screen_size()
+	Global.reprocess_screen_size()
 
 func reprocess_screen_size():
-	screen_size = $Camera.get_viewport_rect().size
-	$HUD.reprocess_screen_size(screen_size)
+	$HUD.reprocess_screen_size(Global.screen_size)
 	
 	# rescale backgrounds to fit
 	screen_size_update.emit()
-	deadzone_length = screen_size.length() * (movement_deadzone / 100)
+	deadzone_length = Global.screen_size.length() * (movement_deadzone / 100)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
