@@ -5,6 +5,7 @@ var in_deck = false
 var draggable = false
 var is_inside_droppable = false
 var body_ref
+var faceup = true
 
 var offset: Vector2
 var initialPos: Vector2
@@ -30,7 +31,14 @@ func _process(delta):
 			else:
 				get_tree().create_tween().tween_property(self, "global_position", initialPos, 0.2).set_ease(Tween.EASE_OUT)
 
-
+# changes the card from faceup to facedown, or vice versa
+func flipOver():
+	if (faceup):
+		faceup = false
+		$Frontside.visible = false
+	else:
+		faceup = true
+		$Frontside.visible = true
 
 func _on_deck_maker_card_mouse_entered():
 	if not Draggables.is_dragging:
