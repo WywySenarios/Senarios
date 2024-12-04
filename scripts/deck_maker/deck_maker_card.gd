@@ -1,16 +1,24 @@
 extends Node2D
 
 @export var card : Card
+@export var faceup : bool
+
+signal placed(card_ref)
+
 var in_deck = false
 var draggable = false
 var is_inside_droppable = false
 var body_ref
-var faceup = true
 
 var offset: Vector2
 var initialPos: Vector2
 
 func _ready():
+	if (faceup):
+		$Frontside.show()
+	else:
+		$Frontside.hide()
+	
 	$card_head.texture = card.image
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -24,6 +32,7 @@ func _process(delta):
 			global_position = get_global_mouse_position() - offset
 		elif Input.is_action_just_released("click"):
 			Draggables.stopDragging()
+			placed.emit(self)
 			
 			if is_inside_droppable:
 				get_tree().create_tween().tween_property(self, "position", body_ref.position, 0.2).set_ease(Tween.EASE_OUT)
@@ -35,21 +44,21 @@ func _process(delta):
 func flipOver():
 	if (faceup):
 		faceup = false
-		$Frontside.visible = false
+		$Frontside.hide()
 	else:
 		faceup = true
-		$Frontside.visible = true
+		$Frontside.show()
 
 func _on_deck_maker_card_mouse_entered():
 	if not Draggables.is_dragging:
 		draggable = true
-		scale = Vector2(1.05, 1.05)
+		scale = Vector2(scale.x * 1.05, scale.y * 1.05)
 
 
 func _on_deck_maker_card_mouse_exited():
 	if not Draggables.is_dragging:
 		draggable = false
-		scale = Vector2(1, 1)
+		scale = Vector2(scale.x / 1.05, scale.y / 1.05)
 
 
 func _on_deck_maker_card_body_entered(body):

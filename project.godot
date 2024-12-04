@@ -20,6 +20,11 @@ config/icon="res://icon.svg"
 Draggables="*res://scripts/autoload/draggables.gd"
 Global="*res://scripts/autoload/global.gd"
 
+[display]
+
+window/size/viewport_width=1366
+window/size/viewport_height=768
+
 [dotnet]
 
 project/assembly_name="Senarios"

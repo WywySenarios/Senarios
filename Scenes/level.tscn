@@ -1,0 +1,73 @@
+[gd_scene load_steps=5 format=3 uid="uid://dbgkh16gjqmti"]
+
+[ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
+[ext_resource type="PackedScene" uid="uid://cpkjg0llh0iyo" path="res://Scenes/level/grid_tile.tscn" id="2_oyijm"]
+[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://Scenes/card.tscn" id="3_ylqso"]
+[ext_resource type="Resource" uid="uid://canjbfh1j51cg" path="res://resources/card_wywy_wywySwordsman.tres" id="4_a1dl6"]
+
+[node name="Card Select" type="Node2D"]
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("1_gsu1h")
+
+[node name="Cards" type="Node" parent="Grid"]
+
+[node name="p1 1" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(289, 670)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+faceup = true
+
+[node name="p1 2" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(424, 670)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+faceup = true
+
+[node name="p1 3" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(554, 670)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+faceup = true
+
+[node name="p1 4" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(719, 670)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+faceup = true
+
+[node name="p1 5" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(889, 670)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+faceup = true
+
+[node name="p2 1" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(272, 20)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+
+[node name="p2 2" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(393, 20)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+
+[node name="p2 3" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(543, 21)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+
+[node name="p2 4" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(671, 27)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+
+[node name="p2 5" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(872, 26)
+scale = Vector2(0.5, 0.5)
+card = ExtResource("4_a1dl6")
+
+[node name="tiles" type="Node" parent="Grid"]
+
+[node name="GridTile" parent="Grid/tiles" instance=ExtResource("2_oyijm")]
+position = Vector2(622, 331)

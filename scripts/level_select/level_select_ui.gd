@@ -26,7 +26,7 @@ func reprocess_screen_size(_screen_size):
 	
 	$"Mission/Planet Name".position = screen_size * -0.5
 	
-	$"Mission/Mission_Rect".size.x = screen_size.x * (1/6)
+	$"Mission/Mission_Rect".size.x = screen_size.x * (1.0/6.0)
 	$"Mission/Mission_Rect".position.x = -screen_size.x * 0.5
 	$"Mission/Mission_Rect".position.y = -screen_size.y * (0.5 - (1.0 / 6.0))
 	

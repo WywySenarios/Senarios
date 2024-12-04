@@ -7,22 +7,23 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y2pvw"]
 size = Vector2(170, 238)
 
-[node name="deck_maker_card" type="Node2D"]
+[node name="card" type="Node2D"]
 script = ExtResource("1_cj40t")
 
-[node name="deck_maker_card" type="Area2D" parent="."]
-
-[node name="Backside" type="Sprite2D" parent="deck_maker_card"]
+[node name="Backside" type="Sprite2D" parent="."]
 position = Vector2(0, 75)
 scale = Vector2(0.225, 0.225)
 texture = ExtResource("2_g3hx2")
 
-[node name="Frontside" type="Sprite2D" parent="deck_maker_card"]
+[node name="Frontside" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(3.8147e-06, 75)
 scale = Vector2(0.225, 0.225)
 texture = ExtResource("3_dbm88")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="deck_maker_card"]
+[node name="card" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="card"]
 position = Vector2(0, 75)
 shape = SubResource("RectangleShape2D_y2pvw")
 
@@ -43,7 +44,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 stretch_mode = 3
 
-[connection signal="body_entered" from="deck_maker_card" to="." method="_on_deck_maker_card_body_entered"]
-[connection signal="body_exited" from="deck_maker_card" to="." method="_on_deck_maker_card_body_exited"]
-[connection signal="mouse_entered" from="deck_maker_card" to="." method="_on_deck_maker_card_mouse_entered"]
-[connection signal="mouse_exited" from="deck_maker_card" to="." method="_on_deck_maker_card_mouse_exited"]
+[connection signal="body_entered" from="card" to="." method="_on_deck_maker_card_body_entered"]
+[connection signal="body_exited" from="card" to="." method="_on_deck_maker_card_body_exited"]
+[connection signal="mouse_entered" from="card" to="." method="_on_deck_maker_card_mouse_entered"]
+[connection signal="mouse_exited" from="card" to="." method="_on_deck_maker_card_mouse_exited"]

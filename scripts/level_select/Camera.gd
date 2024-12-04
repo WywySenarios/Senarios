@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-@export var focus_time : float = 500 / 1000 # animation time to focus in s
+@export var focus_time : float = 500.0 / 1000.0 # animation time to focus in s
 @export var KEYSPEED : int = 250
 @export var zoom_factor : float = 1.0
 
