@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cpkjg0llh0iyo" path="res://Scenes/level/grid_tile.tscn" id="2_oyijm"]
 [ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://Scenes/card.tscn" id="3_ylqso"]
 
-[node name="Level" type="Node2D"]
+[node name="Card Select" type="Node2D"]
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("1_gsu1h")
@@ -55,3 +55,4 @@ scale = Vector2(0.5, 0.5)
 
 [node name="GridTile" parent="Grid/tiles" instance=ExtResource("2_oyijm")]
 position = Vector2(622, 331)
+scale = Vector2(3, 3)
