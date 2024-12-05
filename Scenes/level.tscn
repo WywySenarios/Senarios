@@ -1,57 +1,54 @@
-[gd_scene load_steps=4 format=3 uid="uid://dbgkh16gjqmti"]
+[gd_scene load_steps=3 format=3 uid="uid://dbgkh16gjqmti"]
 
 [ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
-[ext_resource type="PackedScene" uid="uid://cpkjg0llh0iyo" path="res://Scenes/level/grid_tile.tscn" id="2_oyijm"]
 [ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://Scenes/card.tscn" id="3_ylqso"]
 
 [node name="Level" type="Node2D"]
+position = Vector2(683, 384)
 
 [node name="Grid" type="Node2D" parent="."]
 script = ExtResource("1_gsu1h")
 
-[node name="Cards" type="Node" parent="Grid"]
+[node name="tiles" type="Node" parent="Grid"]
 
-[node name="p1 1" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+[node name="Cards" type="Node" parent="."]
+
+[node name="p1 1" parent="Cards" instance=ExtResource("3_ylqso")]
 position = Vector2(289, 670)
 scale = Vector2(0.5, 0.5)
 
-[node name="p1 2" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+[node name="p1 2" parent="Cards" instance=ExtResource("3_ylqso")]
 position = Vector2(424, 670)
 scale = Vector2(0.5, 0.5)
 
-[node name="p1 3" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+[node name="p1 3" parent="Cards" instance=ExtResource("3_ylqso")]
 position = Vector2(554, 670)
 scale = Vector2(0.5, 0.5)
 
-[node name="p1 4" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+[node name="p1 4" parent="Cards" instance=ExtResource("3_ylqso")]
 position = Vector2(719, 670)
 scale = Vector2(0.5, 0.5)
 
-[node name="p1 5" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
+[node name="p1 5" parent="Cards" instance=ExtResource("3_ylqso")]
 position = Vector2(889, 670)
 scale = Vector2(0.5, 0.5)
 
-[node name="p2 1" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(272, 20)
+[node name="p2 1" parent="Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(296, 84)
 scale = Vector2(0.5, 0.5)
 
-[node name="p2 2" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(393, 20)
+[node name="p2 2" parent="Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(417, 84)
 scale = Vector2(0.5, 0.5)
 
-[node name="p2 3" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(543, 21)
+[node name="p2 3" parent="Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(567, 85)
 scale = Vector2(0.5, 0.5)
 
-[node name="p2 4" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(671, 27)
+[node name="p2 4" parent="Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(695, 91)
 scale = Vector2(0.5, 0.5)
 
-[node name="p2 5" parent="Grid/Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(872, 26)
+[node name="p2 5" parent="Cards" instance=ExtResource("3_ylqso")]
+position = Vector2(896, 90)
 scale = Vector2(0.5, 0.5)
-
-[node name="tiles" type="Node" parent="Grid"]
-
-[node name="GridTile" parent="Grid/tiles" instance=ExtResource("2_oyijm")]
-position = Vector2(622, 331)

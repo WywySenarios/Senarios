@@ -1,20 +1,83 @@
 extends Node2D
 
+# Exported variables:
+@export var height: int = 5
+@export var width: int = 5
+## Tile width in pixels
+@export var tileLength: int = 150
+## Margin between gridtiles in pixels.
+@export var margin: int = 15
+
+
+# Not exported variables:
+## Stores references to all gridtiles
+## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
+## Indexes should correspond EXACTLY with activeCards
+var gridTiles: Array[Array] = []
+
+## Stores references to all cards currently on the field.
+## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
+## Indexes should correspond EXACTLY with gridTiles
+var activeCards: Array[Array] = []
+## Stores the reference to the gridtile
 var activeGridTile: Node2D
-var gridTileArea2D: int = 1
 
 # Called when the node enters the scene tree for the first time.
+## Create grid tiles.
+## Connects grid tile signals & card signals.
 func _ready() -> void:
-	for i in $tiles.get_children():
-		# allow for signals for mouse_entered & mouse_exited to pass into here, thereby decreasing the number of scripts I have to write.
-		i.get_child(1).mouse_entered.connect(_on_mouse_entered_gridtile.bind(i))
-		i.get_child(1).mouse_exited.connect(_on_mouse_exit_gridtile.bind(i))
+	# stores whether or not the [height, width] has an odd number of tiles or not
+	var oddTiles: Array[bool] = [height % 2 == 1, width % 2 == 1]
 	
-	for i in $Cards.get_children():
+	var currentGridTileRow
+	var currentGridTile
+	var distanceFromCenter = 0 # in # of cards
+	for a in range(height):
+		currentGridTileRow = Array()
+		for b in range(width):
+			# create grid tile
+			currentGridTile = await preload("res://Scenes/level/grid_tile.tscn")
+			currentGridTile = currentGridTile.instantiate()
+			currentGridTile.set_meta("id", [a,b])
+			# position grid tile correctly:
+			if (oddTiles[1]): # width is odd
+				
+				# Use integer division and add one to find middle.
+				# Counteract index starting at 0 by adding 1 at the end.
+				distanceFromCenter = b - (width / 2 + 1) + 1
+				
+				# default pos + # of tiles * (gap + tile)
+				currentGridTile.position.x = 0.0 + distanceFromCenter * (margin + tileLength)
+			else: # width is even
+				
+				# subtract 0.5 because no card is at position (0,0). IDK why it works, but it does!
+				# Counteract index starting at 0 by adding 1 at the end.
+				distanceFromCenter = b - (width / 2) - 0.5 + 1
+				
+				# 0.5 * (gap + tile) + # of tiles * (gap + tile)
+				# 0.5 is baked in to # of tiles due to the 0.5 being subtracted in the "distanceFromCenter" variable. :D
+				currentGridTile.position.x = distanceFromCenter * (margin + tileLength)
+			if (oddTiles[0]): # height is odd, similar logic to width
+				distanceFromCenter = a - (height / 2 + 1) + 1
+				
+				currentGridTile.position.y = 0.0 + distanceFromCenter * (margin + tileLength)
+			else: # height is even, similar logic to width
+				distanceFromCenter = a - (width / 2) - 0.5 + 1
+				
+				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
+			# allow for signals for mouse_entered & mouse_exited to pass into here, thereby decreasing the number of scripts I have to write.
+			currentGridTile.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(currentGridTile))
+			currentGridTile.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(currentGridTile))
+			# make sure that the grid tile will actually show up and exist
+			add_child(currentGridTile)
+			currentGridTileRow.append(currentGridTile)
+		gridTiles.append(currentGridTileRow)
+	
+	for i in get_parent().get_node("Cards").get_children():
 		i.place.connect(_on_card_placement)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+ #Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta: float) -> void:
 	#pass
 
@@ -44,9 +107,14 @@ func requestPlacement(card: Node2D) -> bool:
 ## This function handles events that follow when placing a card or returning the card to the player's inventory.
 ## This function should determine where and whether or not to place a card, call for animations, and call for sprite movement.
 func _on_card_placement(card: Node2D) -> void:
-	print("Someone played a card!: ", card)
+	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	if (activeGridTile != null):
-		get_tree().create_tween().tween_property(card, "position", activeGridTile.position, 0.2).set_ease(Tween.EASE_OUT)
+		#print("Approach active grid tile!")
+		get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, 0.2).set_ease(Tween.EASE_OUT)
+		# Register card in the correct position
+		# note: metadata "id" has y, x coordinates. They are the exact indexes of the array, so that's nice.
+		print(activeGridTile.get_meta("id"))
 	else: # tell the card to go back to where it came from >:(
+		#print("Go back where you came from!")
 		get_tree().create_tween().tween_property(card, "global_position", card.initialPos, 0.2).set_ease(Tween.EASE_OUT)

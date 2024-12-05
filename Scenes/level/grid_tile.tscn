@@ -4,6 +4,7 @@
 size = Vector2(100, 100)
 
 [node name="GridTile" type="Node2D"]
+metadata/id = [null, null]
 
 [node name="ColorRect" type="ColorRect" parent="."]
 offset_left = -50.0
