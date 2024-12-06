@@ -29,6 +29,7 @@ func _ready() -> void:
 		$Frontside.hide()
 	
 	$card_head.texture = card.image
+	
 
 ## @experimental
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -80,3 +81,8 @@ func _on_deck_maker_card_body_entered(body) -> void:
 func _on_deck_maker_card_body_exited(body) -> void:
 	if body.is_in_group("droppable"):
 		is_inside_droppable = false
+
+## handles card placement animations :D
+func _on_card_placement() -> void:
+	$Particles/placement.restart()
+	$Particles/placement.emitting = true

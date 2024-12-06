@@ -21,6 +21,8 @@ var gridTiles: Array[Array] = []
 var activeCards: Array[Array] = []
 ## Stores the reference to the gridtile
 var activeGridTile: Node2D
+## Utility RNG to be used for visuals, where being truly random does not matter at all.
+var utilityRNG = RandomNumberGenerator.new()
 
 # Called when the node enters the scene tree for the first time.
 ## Create grid tiles.
@@ -30,10 +32,12 @@ func _ready() -> void:
 	var oddTiles: Array[bool] = [height % 2 == 1, width % 2 == 1]
 	
 	var currentGridTileRow
+	var currentCardRow
 	var currentGridTile
 	var distanceFromCenter = 0 # in # of cards
 	for a in range(height):
 		currentGridTileRow = Array()
+		currentCardRow = Array()
 		for b in range(width):
 			# create grid tile
 			currentGridTile = await preload("res://Scenes/level/grid_tile.tscn")
@@ -71,7 +75,10 @@ func _ready() -> void:
 			# make sure that the grid tile will actually show up and exist
 			add_child(currentGridTile)
 			currentGridTileRow.append(currentGridTile)
+			currentCardRow.append(null)
 		gridTiles.append(currentGridTileRow)
+		activeCards.append(currentCardRow)
+	
 	
 	for i in get_parent().get_node("Cards").get_children():
 		i.place.connect(_on_card_placement)
@@ -110,11 +117,20 @@ func _on_card_placement(card: Node2D) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	if (activeGridTile != null):
-		#print("Approach active grid tile!")
-		get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, 0.2).set_ease(Tween.EASE_OUT)
+		# randomize the animation time. It just adds a tiny bit more flavor!
+		var animationTime = utilityRNG.randf_range(0.15, 0.35)
+		
+		var cardPositionTween = get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, animationTime).set_ease(Tween.EASE_OUT)
+		# rotate one revolution (1 rev = 2 pi)
+		get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime).set_ease(Tween.EASE_OUT)
 		# Register card in the correct position
 		# note: metadata "id" has y, x coordinates. They are the exact indexes of the array, so that's nice.
-		print(activeGridTile.get_meta("id"))
+		var index = activeGridTile.get_meta("id")
+		activeCards[index[0]][index[1]] = card
+		card.set_meta("locationIndex", [index[0], index[1]])
+		
+		# activate particles for placing the card down once it's on the board (card class handles this)
+		cardPositionTween.finished.connect(card._on_card_placement)
 	else: # tell the card to go back to where it came from >:(
 		#print("Go back where you came from!")
 		get_tree().create_tween().tween_property(card, "global_position", card.initialPos, 0.2).set_ease(Tween.EASE_OUT)

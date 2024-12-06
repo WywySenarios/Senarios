@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dbgkh16gjqmti"]
 
 [ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
-[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://Scenes/card.tscn" id="3_ylqso"]
+[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://scenes/card.tscn" id="3_ylqso"]
 
 [node name="Level" type="Node2D"]
 position = Vector2(683, 384)
