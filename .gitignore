@@ -1,7 +1,18 @@
 # Godot 4+ specific ignores
 .godot/
 
+
+# fix some weird Godot bug that errors my little PC
 .sln
 
+
+
+# ignore helper scripts
+Helper Scripts/
+
 # ignore all drawing files
-.kra
+*.kra
+
+## ignore autosave drawing files
+*.kra~
+*.png~

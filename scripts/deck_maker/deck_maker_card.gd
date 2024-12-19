@@ -23,10 +23,15 @@ var initialPos: Vector2
 
 ## @experimental
 func _ready() -> void:
+	print(faceup)
 	if (faceup):
+		$Backside.hide()
 		$Frontside.show()
+		$card_head.show()
 	else:
+		$Backside.show()
 		$Frontside.hide()
+		$card_head.hide()
 	
 	$card_head.texture = card.image
 	
@@ -55,9 +60,11 @@ func _process(delta) -> void:
 func flipOver() -> void:
 	if (faceup):
 		faceup = false
+		$Backside.show()
 		$Frontside.hide()
 	else:
 		faceup = true
+		$Backside.hide()
 		$Frontside.show()
 
 func _on_deck_maker_card_mouse_entered() -> void:

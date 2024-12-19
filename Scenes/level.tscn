@@ -1,54 +1,29 @@
-[gd_scene load_steps=3 format=3 uid="uid://dbgkh16gjqmti"]
+[gd_scene load_steps=6 format=3 uid="uid://dbgkh16gjqmti"]
 
 [ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
-[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://scenes/card.tscn" id="3_ylqso"]
+[ext_resource type="Resource" uid="uid://x0vgeyriq0q5" path="res://resources/entity_wywy_shockTrooper.tres" id="3_5lww6"]
+[ext_resource type="PackedScene" uid="uid://5qux38olj7v8" path="res://Scenes/level/inventory.tscn" id="4_yalkr"]
+
+[sub_resource type="Gradient" id="Gradient_6xvj3"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_k23pq"]
+gradient = SubResource("Gradient_6xvj3")
 
 [node name="Level" type="Node2D"]
-position = Vector2(683, 384)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 500)
+texture = SubResource("GradientTexture2D_k23pq")
+
+[node name="Player 1 Inventory" parent="." instance=ExtResource("4_yalkr")]
+position = Vector2(0, 500)
+cardArray = Array[Resource("res://scripts/card/card.gd")]([ExtResource("3_5lww6"), ExtResource("3_5lww6"), ExtResource("3_5lww6"), ExtResource("3_5lww6"), ExtResource("3_5lww6"), ExtResource("3_5lww6"), ExtResource("3_5lww6")])
 
 [node name="Grid" type="Node2D" parent="."]
+z_index = -1
 script = ExtResource("1_gsu1h")
 
 [node name="tiles" type="Node" parent="Grid"]
 
-[node name="Cards" type="Node" parent="."]
-
-[node name="p1 1" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(289, 670)
-scale = Vector2(0.5, 0.5)
-
-[node name="p1 2" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(424, 670)
-scale = Vector2(0.5, 0.5)
-
-[node name="p1 3" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(554, 670)
-scale = Vector2(0.5, 0.5)
-
-[node name="p1 4" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(719, 670)
-scale = Vector2(0.5, 0.5)
-
-[node name="p1 5" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(889, 670)
-scale = Vector2(0.5, 0.5)
-
-[node name="p2 1" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(296, 84)
-scale = Vector2(0.5, 0.5)
-
-[node name="p2 2" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(417, 84)
-scale = Vector2(0.5, 0.5)
-
-[node name="p2 3" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(567, 85)
-scale = Vector2(0.5, 0.5)
-
-[node name="p2 4" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(695, 91)
-scale = Vector2(0.5, 0.5)
-
-[node name="p2 5" parent="Cards" instance=ExtResource("3_ylqso")]
-position = Vector2(896, 90)
-scale = Vector2(0.5, 0.5)
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.5, 0.5)

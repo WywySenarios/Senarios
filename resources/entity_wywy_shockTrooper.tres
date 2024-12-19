@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Entity" load_steps=3 format=3 uid="uid://x0vgeyriq0q5"]
+
+[ext_resource type="Texture2D" uid="uid://d1bveqsykc3bk" path="res://assets/cards/card_images/cardImage-Electro-shock-Trooper.png" id="1_ix26v"]
+[ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_w1aep"]
+
+[resource]
+script = ExtResource("1_w1aep")
+health = 1.0
+hpr = 0.0
+shield = 0.0
+aggressive = true
+currentMove = 0
+moves = Array[Resource("res://scripts/card/move.gd")]([])
+abilities = Array[Resource("res://scripts/card/ability.gd")]([])
+name = "Shock Trooper"
+cardType = ""
+generation = 4
+cost = 0.0
+type = Array[String]([])
+image = ExtResource("1_ix26v")

@@ -35,30 +35,12 @@ position = Vector2(3.8147e-06, 0)
 scale = Vector2(0.225, 0.225)
 texture = ExtResource("3_dbm88")
 
+[node name="card_head" type="Sprite2D" parent="."]
+
 [node name="card" type="Area2D" parent="."]
-position = Vector2(0, -75)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="card"]
-position = Vector2(0, 75)
 shape = SubResource("RectangleShape2D_y2pvw")
-
-[node name="card_head" type="TextureRect" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -75.0
-offset_top = -100.0
-offset_right = 675.0
-offset_bottom = 150.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(0.2, 0.2)
-size_flags_horizontal = 4
-size_flags_vertical = 4
-stretch_mode = 3
-metadata/_edit_use_anchors_ = true
 
 [connection signal="body_entered" from="card" to="." method="_on_deck_maker_card_body_entered"]
 [connection signal="body_exited" from="card" to="." method="_on_deck_maker_card_body_exited"]

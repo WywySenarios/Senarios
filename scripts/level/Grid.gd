@@ -8,6 +8,8 @@ extends Node2D
 ## Margin between gridtiles in pixels.
 @export var margin: int = 15
 
+const gridTileScene = await preload("res://Scenes/level/grid_tile.tscn")
+
 
 # Not exported variables:
 ## Stores references to all gridtiles
@@ -40,8 +42,7 @@ func _ready() -> void:
 		currentCardRow = Array()
 		for b in range(width):
 			# create grid tile
-			currentGridTile = await preload("res://Scenes/level/grid_tile.tscn")
-			currentGridTile = currentGridTile.instantiate()
+			currentGridTile = gridTileScene.instantiate()
 			currentGridTile.set_meta("id", [a,b])
 			# position grid tile correctly:
 			if (oddTiles[1]): # width is odd
@@ -51,7 +52,7 @@ func _ready() -> void:
 				distanceFromCenter = b - (width / 2 + 1) + 1
 				
 				# default pos + # of tiles * (gap + tile)
-				currentGridTile.position.x = 0.0 + distanceFromCenter * (margin + tileLength)
+				currentGridTile.position.x = distanceFromCenter * (margin + tileLength)
 			else: # width is even
 				
 				# subtract 0.5 because no card is at position (0,0). IDK why it works, but it does!
@@ -64,7 +65,7 @@ func _ready() -> void:
 			if (oddTiles[0]): # height is odd, similar logic to width
 				distanceFromCenter = a - (height / 2 + 1) + 1
 				
-				currentGridTile.position.y = 0.0 + distanceFromCenter * (margin + tileLength)
+				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
 			else: # height is even, similar logic to width
 				distanceFromCenter = a - (width / 2) - 0.5 + 1
 				
@@ -75,12 +76,16 @@ func _ready() -> void:
 			# make sure that the grid tile will actually show up and exist
 			add_child(currentGridTile)
 			currentGridTileRow.append(currentGridTile)
+			
+			# when the grid is first made, there are no cards on the grid
 			currentCardRow.append(null)
+		
 		gridTiles.append(currentGridTileRow)
 		activeCards.append(currentCardRow)
 	
 	
-	for i in get_parent().get_node("Cards").get_children():
+	# Connect signals of every card inside the scene
+	for i in get_parent().get_node("Player 1 Inventory").get_children():
 		i.place.connect(_on_card_placement)
 
 
