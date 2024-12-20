@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://dbgkh16gjqmti"]
+[gd_scene load_steps=8 format=3 uid="uid://dbgkh16gjqmti"]
 
 [ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_p32ov"]
 [ext_resource type="Resource" uid="uid://x0vgeyriq0q5" path="res://resources/entity_wywy_shockTrooper.tres" id="3_5lww6"]
 [ext_resource type="PackedScene" uid="uid://5qux38olj7v8" path="res://Scenes/level/inventory.tscn" id="4_yalkr"]
+[ext_resource type="Script" path="res://Scripts/Lobby.gd" id="5_bq8rf"]
 
 [sub_resource type="Gradient" id="Gradient_6xvj3"]
 
@@ -10,6 +12,7 @@
 gradient = SubResource("Gradient_6xvj3")
 
 [node name="Level" type="Node2D"]
+script = ExtResource("1_p32ov")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, 500)
@@ -27,3 +30,6 @@ script = ExtResource("1_gsu1h")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.5, 0.5)
+
+[node name="Lobby" type="Node2D" parent="."]
+script = ExtResource("5_bq8rf")
