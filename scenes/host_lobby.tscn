@@ -1,0 +1,81 @@
+[gd_scene load_steps=5 format=3 uid="uid://ckxd4jjj6mxa0"]
+
+[ext_resource type="Script" path="res://scripts/host_lobby.gd" id="1_3h8c1"]
+[ext_resource type="Texture2D" uid="uid://dlde5ld1d2mh4" path="res://assets/lobby/Icon_Wywy.png" id="1_ia4xm"]
+[ext_resource type="Texture2D" uid="uid://h8r22y6iw5gb" path="res://assets/lobby/Icon_Stickman.png" id="2_7bokt"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_68frg"]
+font_size = 200
+
+[node name="host_lobby" type="Node2D"]
+script = ExtResource("1_3h8c1")
+
+[node name="Icon_Wywy" type="Sprite2D" parent="."]
+position = Vector2(255, 152)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_ia4xm")
+
+[node name="YOU" type="Label" parent="Icon_Wywy"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -586.5
+offset_top = -54.1631
+offset_right = -163.5
+offset_bottom = 218.837
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "YOU"
+label_settings = SubResource("LabelSettings_68frg")
+language = "English"
+
+[node name="Icon_Stickman" type="Sprite2D" parent="."]
+position = Vector2(885, 166)
+scale = Vector2(0.245333, 0.245333)
+texture = ExtResource("2_7bokt")
+
+[node name="YOU" type="Label" parent="Icon_Stickman"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -586.5
+offset_top = -54.1631
+offset_right = -163.5
+offset_bottom = 218.837
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "???"
+label_settings = SubResource("LabelSettings_68frg")
+language = "English"
+
+[node name="StartGameButton" type="Button" parent="."]
+offset_left = 463.0
+offset_top = 410.0
+offset_right = 592.0
+offset_bottom = 539.0
+disabled = true
+text = "Waiting for second player..."
+
+[node name="Player Name" type="TextEdit" parent="."]
+offset_left = 486.0
+offset_top = 339.0
+offset_right = 665.0
+offset_bottom = 399.0
+placeholder_text = "Enter your name"
+
+[node name="Status Message" type="Label" parent="."]
+offset_left = 498.0
+offset_top = 282.0
+offset_right = 538.0
+offset_bottom = 305.0
+
+[node name="Timer" type="Timer" parent="Status Message"]
+wait_time = 5.0
+
+[connection signal="button_up" from="StartGameButton" to="." method="_on_start_game_button_button_up"]

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Draggables="*res://scripts/autoload/draggables.gd"
 Global="*res://scripts/autoload/global.gd"
+Lobby="*res://scripts/autoload/lobby.gd"
 
 [display]
 

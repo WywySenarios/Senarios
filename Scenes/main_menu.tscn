@@ -25,5 +25,21 @@ offset_right = 621.0
 offset_bottom = 555.0
 text = "Deck Maker"
 
+[node name="Join Game Button" type="Button" parent="."]
+offset_left = 704.0
+offset_top = 448.0
+offset_right = 1010.0
+offset_bottom = 561.0
+text = "Join Game"
+
+[node name="Host Game Button" type="Button" parent="."]
+offset_left = 792.0
+offset_top = 263.0
+offset_right = 1098.0
+offset_bottom = 376.0
+text = "Host Game"
+
 [connection signal="button_down" from="Level Select Button" to="." method="_on_button_down" binds= ["level_select"]]
 [connection signal="button_down" from="Deck Maker Button" to="." method="_on_button_down" binds= ["deck_maker"]]
+[connection signal="button_down" from="Join Game Button" to="." method="_on_join_game_button_button_down"]
+[connection signal="button_down" from="Host Game Button" to="." method="_on_host_game_button_button_down"]

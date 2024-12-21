@@ -1,3 +1,88 @@
-[gd_scene format=3 uid="uid://dfkwf1fja0524"]
+[gd_scene load_steps=5 format=3 uid="uid://dfkwf1fja0524"]
 
-[node name="Lobby" type="Node2D"]
+[ext_resource type="Script" path="res://scripts/lobby.gd" id="1_dxodn"]
+[ext_resource type="Texture2D" uid="uid://dlde5ld1d2mh4" path="res://assets/lobby/Icon_Wywy.png" id="2_ccq84"]
+[ext_resource type="Texture2D" uid="uid://h8r22y6iw5gb" path="res://assets/lobby/Icon_Stickman.png" id="3_rgnuj"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_r4dlq"]
+font_size = 200
+
+[node name="lobby" type="Node2D"]
+script = ExtResource("1_dxodn")
+
+[node name="Icon_Wywy" type="Sprite2D" parent="."]
+position = Vector2(255, 152)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_ccq84")
+
+[node name="YOU" type="Label" parent="Icon_Wywy"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -586.5
+offset_top = -54.1631
+offset_right = -163.5
+offset_bottom = 218.837
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "???"
+label_settings = SubResource("LabelSettings_r4dlq")
+language = "English"
+
+[node name="Icon_Stickman" type="Sprite2D" parent="."]
+position = Vector2(885, 166)
+scale = Vector2(0.245333, 0.245333)
+texture = ExtResource("3_rgnuj")
+
+[node name="YOU" type="Label" parent="Icon_Stickman"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -586.5
+offset_top = -54.1631
+offset_right = -163.5
+offset_bottom = 218.837
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "YOU"
+label_settings = SubResource("LabelSettings_r4dlq")
+language = "English"
+
+[node name="IPAddressInput" type="TextEdit" parent="."]
+offset_left = 380.0
+offset_top = 352.0
+offset_right = 702.0
+offset_bottom = 398.0
+placeholder_text = "Type the Host's IP Address"
+
+[node name="JoinButton" type="Button" parent="."]
+offset_left = 463.0
+offset_top = 410.0
+offset_right = 592.0
+offset_bottom = 539.0
+text = "JOIN"
+
+[node name="Status Message" type="Label" parent="."]
+offset_left = 486.0
+offset_top = 35.0
+offset_right = 638.0
+offset_bottom = 94.0
+
+[node name="Timer" type="Timer" parent="Status Message"]
+wait_time = 5.0
+
+[node name="Player Name" type="TextEdit" parent="."]
+offset_left = 469.0
+offset_top = 281.0
+offset_right = 648.0
+offset_bottom = 341.0
+placeholder_text = "Enter your name"
+
+[connection signal="pressed" from="JoinButton" to="." method="_on_join_button_pressed"]
+[connection signal="timeout" from="Status Message/Timer" to="." method="_on_status_message_timeout"]

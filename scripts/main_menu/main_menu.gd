@@ -11,3 +11,11 @@ func _process(delta):
 
 func _on_button_down(type):
 	get_tree().change_scene_to_file("res://scenes/" + type + "/" + type + ".tscn")
+
+
+func _on_host_game_button_button_down():
+	get_tree().change_scene_to_file("res://scenes/host_lobby.tscn")
+
+
+func _on_join_game_button_button_down():
+	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
