@@ -20,7 +20,8 @@ func _on_join_button_pressed() -> void:
 		failed_to_join()
 	else: # Upon successful connection,
 		# send player's info
-		Lobby.sendPlayerName($"Player Name".text, Lobby.peer.get_unique_id())
+		pass
+		#Lobby.sendPlayerName($"Player Name".text, Lobby.peer.get_unique_id())
 	
 
 func playerInfoChanged(id: int) -> void:

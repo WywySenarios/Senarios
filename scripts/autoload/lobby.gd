@@ -115,6 +115,8 @@ func joinGame(playerName: String, serverIP = ""):
 		
 		peer.get_host().compress(ENetConnection.COMPRESS_RANGE_CODER)
 		multiplayer.set_multiplayer_peer(peer)
+		
+		sendPlayerName(playerName, peer.get_unique_id())
 
 
 ## starts the game
