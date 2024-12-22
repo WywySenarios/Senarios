@@ -63,6 +63,7 @@ disabled = true
 text = "Waiting for second player..."
 
 [node name="Player Name" type="TextEdit" parent="."]
+visible = false
 offset_left = 486.0
 offset_top = 339.0
 offset_right = 665.0
@@ -70,10 +71,9 @@ offset_bottom = 399.0
 placeholder_text = "Enter your name"
 
 [node name="Status Message" type="Label" parent="."]
-offset_left = 498.0
-offset_top = 282.0
-offset_right = 538.0
-offset_bottom = 305.0
+offset_left = 422.0
+offset_right = 751.0
+offset_bottom = 91.0
 
 [node name="Timer" type="Timer" parent="Status Message"]
 wait_time = 5.0

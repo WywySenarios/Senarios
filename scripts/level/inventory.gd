@@ -69,7 +69,7 @@ func repositionCards():
 		for distanceFromCenter: int in range(-indexCorrection, indexCorrection + 1):
 			# the actual formula should be 0.5 * cardWidth + 1 * gapSize + 0.5 * cardWidth
 			cards[distanceFromCenter + indexCorrection].position.x = distanceFromCenter * (gapSize + cardWidth)
-			print("Inventory card positions: ", distanceFromCenter, " ", distanceFromCenter + indexCorrection, " ", cards[distanceFromCenter + indexCorrection].global_position)
+			#print("Inventory card positions: ", distanceFromCenter, " ", distanceFromCenter + indexCorrection, " ", cards[distanceFromCenter + indexCorrection].global_position)
 		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
