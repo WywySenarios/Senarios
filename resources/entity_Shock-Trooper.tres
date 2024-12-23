@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Entity" load_steps=3 format=3 uid="uid://x0vgeyriq0q5"]
 
-[ext_resource type="Texture2D" uid="uid://d1bveqsykc3bk" path="res://assets/cards/card_images/cardImage-Electro-shock-Trooper.png" id="1_ix26v"]
+[ext_resource type="Texture2D" uid="uid://d1bveqsykc3bk" path="res://assets/cards/card_images/cardImage-Shock-Trooper.png" id="1_ix26v"]
 [ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_w1aep"]
 
 [resource]

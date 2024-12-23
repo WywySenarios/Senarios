@@ -10,6 +10,10 @@ signal server_up ## emitted when there is an attempt to initialize the server. R
 signal player_info_changed(peer_id)
 
 var peer
+## Stores the ID of the client
+var myID: int = -1
+## Stores the name of the client
+var myName: String
 
 const PORT: int = 5323
 const DEFAULT_SERVER_IP: String = "127.0.0.1" # IPv4 localhost
@@ -40,10 +44,11 @@ func peerDisconnected(id: int):
 	print("Player disconnected: ", id)
 	
 	
-## Called when a peer who is not the host has joined the server.
+## Called when a [peer who is not the host] has joined the server.
 func connectedToServer():
 	print("connected to server!")
-	#sendPlayerName.rpc_id(1, "", multiplayer.get_unique_id())
+	## tell the HOST (id = 1) that you just connected, and drop your name, too!
+	sendPlayerName.rpc_id(1, myName, multiplayer.get_unique_id())
 	
 func connectionFailed():
 	print("Couldn't connect.")
@@ -62,6 +67,8 @@ func sendPlayerName(name: String, id: int):
 		for i in players:
 			sendPlayerName.rpc(players[i].name, i)
 	player_info_changed.emit(id)
+	#print("done sending player info", id, ", ", name)
+	
 
 @rpc("any_peer", "call_local")
 func sendFullPlayerInformation(player: Player, id):
@@ -88,7 +95,8 @@ func createServer(playerName: String):
 	# reigster that you have connected yourself to the server
 	player_connected.emit(1)
 	
-	sendPlayerName("Host", 1)
+	myName = "Host"
+	sendPlayerName(myName, 1)
 	# additionally, the Host always has the first move.
 	players[1].isTheirTurn = true
 	
@@ -103,6 +111,9 @@ func joinGame(playerName: String, serverIP = ""):
 	# ensure that the player name is not empty (that would be confusing to see in the UIs)
 	if playerName.is_empty(): playerName = DEFAULT_PLAYER_NAME
 	
+	# register your new name! :D
+	myName = playerName
+	
 	peer = ENetMultiplayerPeer.new()
 	if (serverIP.is_empty()): # detect if the player wants to connect to the default server ip
 		serverIP = DEFAULT_SERVER_IP
@@ -115,8 +126,6 @@ func joinGame(playerName: String, serverIP = ""):
 		
 		peer.get_host().compress(ENetConnection.COMPRESS_RANGE_CODER)
 		multiplayer.set_multiplayer_peer(peer)
-		
-		sendPlayerName(playerName, peer.get_unique_id())
 
 
 ## starts the game

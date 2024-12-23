@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Deck" load_steps=3 format=3 uid="uid://bvb8rrw1858wl"]
+
+[ext_resource type="Resource" uid="uid://dj6fq4kxuiqw3" path="res://resources/entity_Gen-4-Stickman.tres" id="1_6r7db"]
+[ext_resource type="Script" path="res://scripts/deck_maker/deck.gd" id="2_aypj0"]
+
+[resource]
+script = ExtResource("2_aypj0")
+content = Array[Resource("res://scripts/card/card.gd")]([ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db"), ExtResource("1_6r7db")])

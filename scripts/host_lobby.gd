@@ -44,6 +44,9 @@ func _on_start_game_button_button_up():
 	
 	# load the level scene yourself
 	Lobby.startGame()
+	
+	# store your own player ID so that you'll know for when the next scene loads
+	Global.id = 1
 
 func broadcastMessage(message: String):
 	$"Status Message".text = message

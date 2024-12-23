@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Deck" load_steps=3 format=3 uid="uid://dch4ujpcowj44"]
+
+[ext_resource type="Script" path="res://scripts/deck_maker/deck.gd" id="1_120i7"]
+[ext_resource type="Resource" uid="uid://x0vgeyriq0q5" path="res://resources/entity_Shock-Trooper.tres" id="1_n241r"]
+
+[resource]
+script = ExtResource("1_120i7")
+content = Array[Resource("res://scripts/card/card.gd")]([ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r"), ExtResource("1_n241r")])

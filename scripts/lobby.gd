@@ -9,19 +9,22 @@ func _ready():
 
 
 # Called every frame. 'delta' is the elaspsed time since the previous frame.
-func _process(delta):
+func _process(delta) -> void:
 	pass
 
 
 ## Attempts to connect to the host with the IP address specified in the respective text box (as inputted by the user)
 func _on_join_button_pressed() -> void:
 	# try to join the lobby. If the attempt fails, tell the user that they couldn't connect.
+	#Lobby.joinGame($"Player Name".text, $IPAddressInput.text)
 	if Lobby.joinGame($"Player Name".text, $IPAddressInput.text) != null:
 		failed_to_join()
 	else: # Upon successful connection,
 		# send player's info
-		pass
-		#Lobby.sendPlayerName($"Player Name".text, Lobby.peer.get_unique_id())
+		#Lobby.sendPlayerName.rpc($"Player Name".text, Lobby.peer.get_unique_id())
+		
+		# store your own player ID so that you'll know for when the next scene loads
+		Global.id = Lobby.peer.get_unique_id()
 	
 
 func playerInfoChanged(id: int) -> void:

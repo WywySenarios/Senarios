@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1bveqsykc3bk"
-path="res://.godot/imported/cardImage-Electro-shock-Trooper.png-5dd4f967a3630b366426273dbe232d98.ctex"
+path="res://.godot/imported/cardImage-Shock-Trooper.png-6bd6170b8a8671ba2f584a9936a9daeb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/cards/card_images/cardImage-Electro-shock-Trooper.png"
-dest_files=["res://.godot/imported/cardImage-Electro-shock-Trooper.png-5dd4f967a3630b366426273dbe232d98.ctex"]
+source_file="res://assets/cards/card_images/cardImage-Shock-Trooper.png"
+dest_files=["res://.godot/imported/cardImage-Shock-Trooper.png-6bd6170b8a8671ba2f584a9936a9daeb.ctex"]
 
 [params]
 
