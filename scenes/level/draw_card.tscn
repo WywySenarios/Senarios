@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3 uid="uid://b07e3x75q8tu1"]
+
+[ext_resource type="Script" path="res://scripts/level/draw_card.gd" id="1_cjsmm"]
+[ext_resource type="Texture2D" uid="uid://cw6h5b7y2bn4r" path="res://assets/cards/frontside.png" id="5_u8k34"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y2pvw"]
+size = Vector2(170, 238)
+
+[node name="card" type="Node2D"]
+script = ExtResource("1_cjsmm")
+
+[node name="Frontside" type="Sprite2D" parent="."]
+position = Vector2(3.8147e-06, 0)
+scale = Vector2(0.225, 0.225)
+texture = ExtResource("5_u8k34")
+
+[node name="card_head" type="Sprite2D" parent="."]
+
+[node name="card" type="Area2D" parent="."]
+visible = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="card"]
+visible = false
+shape = SubResource("RectangleShape2D_y2pvw")
+
+[node name="Button" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -25.0
+offset_top = 150.0
+offset_right = 25.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Refresh Card"
+
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]

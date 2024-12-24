@@ -23,27 +23,23 @@ func _process(delta):
 
 ## Called when the opponent joins the lobby. The game is now ready to start.
 func _opponent_connected(id):
-	# enable the button that allows the game to be started
-	$StartGameButton.disabled = false
-	$StartGameButton.text = "START GAME"
+	if id != 1:
+		# enable the button that allows the game to be started
+		$StartGameButton.disabled = false
+		$StartGameButton.text = "START GAME"
 
 ## Called when someone's info changes
 func playerInfoChanged(id: int) -> void:
-	print("ID: ", id)
 	if (id == 1):
 		return # no need to update information if the user's information has changed (that would be useless :P)
 	else: # another player's information has changed!
 		# update opponent's name
-		print("update player name", id, ", ", Lobby.players[id])
 		$"Icon_Stickman/YOU".text = Lobby.players[id].name
 
 ## Called when the user requests the game to be started.
 func _on_start_game_button_button_up():
-	# tell the opponent to load the level scene
+	# tell the EVERYONE to load the level scene
 	Lobby.startGame.rpc()
-	
-	# load the level scene yourself
-	Lobby.startGame()
 	
 	# store your own player ID so that you'll know for when the next scene loads
 	Global.id = 1

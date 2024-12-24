@@ -18,6 +18,9 @@ var cardWidth: int = 250
 
 var cards: Array[Node2D] = []
 
+# Avoid having to load it again and again, thus saving a bit of runtime.
+const cardScene = preload("res://Scenes/card.tscn")
+
 ## Inititalizes and places cards to be ready to play!
 ## Called when the node enters the scene tree for the first time.
 ## Also determines whether or not the cards are faceup or facedown, based on [member Inventory.isMyInventory] (<- check if this doc comment is valid later on)
@@ -26,8 +29,7 @@ func _ready():
 	# Make a bunch of cards as requested by the cardArray
 	var currentCard
 	for i in range(len(cardArray)):
-		currentCard = await preload("res://Scenes/card.tscn")
-		currentCard = currentCard.instantiate()
+		currentCard = cardScene.instantiate()
 		currentCard.faceup = isMyInventory # faceup ONLY if it's the current player's inventory
 		currentCard.card = cardArray[i]
 		# Card name = Card [i] (e.g. Card 1)
@@ -53,7 +55,9 @@ func repositionCards():
 		# T
 		
 		#IDK why the index corrections work, but they do
+		# @warning_ignore("integer_division")
 		var indexCorrectionPositive = len(cards) / 2 - 2
+		# @warning_ignore("integer_division")
 		var indexCorrectionNegative = -(len(cards) / 2 - 1)
 		
 		# loops through the absolute value of the distance from the center
@@ -64,6 +68,7 @@ func repositionCards():
 			#print("Inventory card positions: ", distanceFromCenter, " ", indexCorrectionPositive + distanceFromCenter, " ", cards[indexCorrectionPositive + distanceFromCenter].position, " ", cards[indexCorrectionPositive + distanceFromCenter].global_position)
 			#print("Inventory card positions: ", -distanceFromCenter, " ", indexCorrectionNegative + distanceFromCenter, " ", cards[indexCorrectionNegative + distanceFromCenter].position, " ", cards[indexCorrectionNegative + distanceFromCenter].global_position)
 	else: # odd number of cards
+		# @warning_ignore("integer_division")
 		var indexCorrection = len(cards) / 2
 		
 		for distanceFromCenter: int in range(-indexCorrection, indexCorrection + 1):

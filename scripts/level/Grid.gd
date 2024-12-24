@@ -85,7 +85,7 @@ func _ready() -> void:
 	
 	
 	# Connect signals of every card inside the scene
-	for i in get_parent().get_node("Player 1 Inventory").get_children():
+	for i in get_parent().get_node("My Inventory").get_children():
 		i.place.connect(_on_card_placement)
 
 

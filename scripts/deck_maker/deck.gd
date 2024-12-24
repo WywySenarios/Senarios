@@ -7,4 +7,5 @@ const initialLength = 40
 @export var content: Array[Card] = []
 
 func _ready():
+	# Warn about invalid decks
 	if len(content) != 40: push_warning("The following deck does not have 40 cards: ", self)

@@ -23,7 +23,6 @@ var initialPos: Vector2
 
 ## @experimental
 func _ready() -> void:
-	print(faceup)
 	if (faceup):
 		$Backside.hide()
 		$Frontside.show()
