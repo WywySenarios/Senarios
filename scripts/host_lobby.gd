@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 
 # Called when the node enters the scene tree for the first time.
@@ -34,7 +34,7 @@ func playerInfoChanged(id: int) -> void:
 		return # no need to update information if the user's information has changed (that would be useless :P)
 	else: # another player's information has changed!
 		# update opponent's name
-		$"Icon_Stickman/YOU".text = Lobby.players[id].name
+		$"Player 2".text = Lobby.players[id].name
 
 ## Called when the user requests the game to be started.
 func _on_start_game_button_button_up():

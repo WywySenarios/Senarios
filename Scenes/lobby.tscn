@@ -1,72 +1,108 @@
-[gd_scene load_steps=5 format=3 uid="uid://dfkwf1fja0524"]
+[gd_scene load_steps=6 format=3 uid="uid://dfkwf1fja0524"]
 
 [ext_resource type="Script" path="res://scripts/Lobby.gd" id="1_dxodn"]
-[ext_resource type="Texture2D" uid="uid://dlde5ld1d2mh4" path="res://assets/lobby/Icon_Wywy.png" id="2_ccq84"]
-[ext_resource type="Texture2D" uid="uid://h8r22y6iw5gb" path="res://assets/lobby/Icon_Stickman.png" id="3_rgnuj"]
+[ext_resource type="Texture2D" uid="uid://cgia6o3vr4fbo" path="res://assets/lobby/Icon_Wywy.png" id="2_ccq84"]
+[ext_resource type="Texture2D" uid="uid://db2kfx4g70qeu" path="res://assets/lobby/Icon_Stickman.png" id="3_rgnuj"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_r4dlq"]
-font_size = 200
+[sub_resource type="LabelSettings" id="LabelSettings_us7on"]
+font_size = 75
 
-[node name="lobby" type="Node2D"]
+[sub_resource type="LabelSettings" id="LabelSettings_smjo2"]
+font_size = 75
+
+[node name="lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_dxodn")
 
-[node name="Icon_Wywy" type="Sprite2D" parent="."]
-position = Vector2(255, 152)
-scale = Vector2(0.25, 0.25)
+[node name="Icon_Wywy" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.3
+anchor_bottom = 0.6
+offset_bottom = -3.05176e-05
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("2_ccq84")
+expand_mode = 1
 
-[node name="YOU" type="Label" parent="Icon_Wywy"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -586.5
-offset_top = -54.1631
-offset_right = -163.5
-offset_bottom = 218.837
+[node name="Icon_Stickman" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.6
+offset_bottom = -3.05176e-05
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_rgnuj")
+expand_mode = 1
+
+[node name="Host" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.6
+anchor_right = 0.3
+anchor_bottom = 0.75
+offset_top = -2.89999
+offset_bottom = 2.90002
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 text = "???"
-label_settings = SubResource("LabelSettings_r4dlq")
+label_settings = SubResource("LabelSettings_us7on")
+horizontal_alignment = 1
+uppercase = true
 language = "English"
 
-[node name="Icon_Stickman" type="Sprite2D" parent="."]
-position = Vector2(885, 166)
-scale = Vector2(0.245333, 0.245333)
-texture = ExtResource("3_rgnuj")
-
-[node name="YOU" type="Label" parent="Icon_Stickman"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -586.5
-offset_top = -54.1631
-offset_right = -163.5
-offset_bottom = 218.837
+[node name="YOU" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.75
+offset_top = -2.89999
+offset_bottom = 2.90002
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 text = "YOU"
-label_settings = SubResource("LabelSettings_r4dlq")
+label_settings = SubResource("LabelSettings_smjo2")
+horizontal_alignment = 1
 language = "English"
 
 [node name="IPAddressInput" type="TextEdit" parent="."]
-offset_left = 380.0
-offset_top = 352.0
-offset_right = 702.0
-offset_bottom = 398.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.55
+anchor_right = 0.65
+anchor_bottom = 0.63
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Type the Host's IP Address"
 placeholder_text = "Type the Host's IP Address"
 
 [node name="JoinButton" type="Button" parent="."]
-offset_left = 463.0
-offset_top = 410.0
-offset_right = 592.0
-offset_bottom = 539.0
-text = "JOIN"
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.65
+anchor_right = 0.65
+anchor_bottom = 0.8
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Join Game"
+text = "Join Game"
 
 [node name="Status Message" type="Label" parent="."]
 offset_left = 486.0
@@ -78,10 +114,15 @@ offset_bottom = 94.0
 wait_time = 5.0
 
 [node name="Player Name" type="TextEdit" parent="."]
-offset_left = 469.0
-offset_top = 281.0
-offset_right = 648.0
-offset_bottom = 341.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.45
+anchor_right = 0.65
+anchor_bottom = 0.53
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Player Name"
 placeholder_text = "Enter your name"
 
 [connection signal="pressed" from="JoinButton" to="." method="_on_join_button_pressed"]

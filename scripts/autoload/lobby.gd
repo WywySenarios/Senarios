@@ -17,6 +17,7 @@ var me: Player = null
 
 const PORT: int = 5323
 const DEFAULT_SERVER_IP: String = "127.0.0.1" # IPv4 localhost
+const MIN_CONNECTIONS: int = 2
 const MAX_CONNECTIONS: int = 2
 const DEFAULT_PLAYER_NAME: String = "???"
 
@@ -30,6 +31,11 @@ var players: Dictionary = {}
 
 ## This contains all the ids of the players who have successfully chosen their starting hand.
 var playersReady = []
+
+## Stores all the card selection indexes. Key is the player ID, value is an array with the deck indexes selected.
+var playerCardSelectionIndexes: Dictionary = {}
+
+
 
 ## Stores the current stage of the game:
 ## {
@@ -75,6 +81,7 @@ signal abilityUpdated(index: Array[int], ability: String)
 signal cardStatUpdated(index: Array[int], statName: String, newMagnitude: int)
 signal playerHealthUpdated(id: int, oldHealth: int)
 signal playerEnergyUpdated(id: int, oldEnergy: int)
+signal gameStateChange(oldGameStateName: String, oldGameStatePlayer: int)
 
 # Gameplay variables:
 var gameRound: int = 0
@@ -217,6 +224,12 @@ func preGame():
 			# tell the player which starting hand they have received
 			var cardsToPassIn: Array[String] = [players[i].deck.content[0], players[i].deck.content[1], players[i].deck.content[2], players[i].deck.content[3]]
 			startingHand.rpc_id(i, cardsToPassIn)
+			
+			# store which deck indexes the players have chosen thusfar
+			playerCardSelectionIndexes[i] = [0, 1, 2, 3]
+		
+		# start the card selection game stage
+		approveGameStateChange.rpc("Card Draw", -1)
 	
 
 
@@ -229,11 +242,12 @@ func preGame():
 
 
 ## Reshuffles the deck of the player with the ID specified.
-## ID referes to the player whose deck is being shuffled.
+## ID refers to the player whose deck is being shuffled.
+## This function notifies the player that their deck has been shuffled (not implemented yet)
 ## @experimental
 func shuffleDeck(id: int):
 	# actually shuffles the deck
-	players[id].deck.shuffle()
+	players[id].deck.content.shuffle()
 	
 	#changeDeckLength.rpc(players[id], id) # broadcast deck length changes
 
@@ -263,7 +277,8 @@ func rerollWish(index: int, id: int):
 	# check for valid input
 	if 0 <= index and index <= 3: # IDK why I need the "and" keyword here XD
 		if multiplayer.is_server(): # ensure only the server responds
-			approvedRerollWish.rpc_id(id, index + 4, players[id].deck.content[index + 4])
+			playerCardSelectionIndexes[id][index] += 4 # update card selection index
+			approvedRerollWish.rpc_id(id, index + 4, players[id].deck.content[index + 4]) # approve request
 	else:
 		return
 	# contact ONLY the player who has drawn the card that they have received a new card.
@@ -277,23 +292,53 @@ func approvedRerollWish(index: int, card: String):
 
 
 
+
+
+
 ## Called when the game stage is to change.
 ## Can be called by anyone, but only takes effect if the correct person calls it.
 ## Additionally, calling this during the card selection phase marks that the player who called it is ready.
-## To call this function, call the HOST using rpc_id.
-# TODO fix up RPC parameters
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "reliable", "call_local")
 func changeGameState(id: int):
-	# if the current state of the game is ...,
-	if gameState.name == "Card Draw":
-		# TODO implement card selection phase code
-		# give the players their cards
-		pass
+	if multiplayer.is_server():
+		# if the current state of the game is ...,
+		if gameState.name == "Card Draw":
+			# TODO implement card selection phase code
+			# give the players their cards
+			for i in playerCardSelectionIndexes[id]:
+				# tell every player about the new card
+				for a in players:
+					if a == id or a == 1:
+						# give the correct card information to the host and respective player
+						handOverCard.rpc_id(a, id, players[id].deck.content[i])
+					else:
+						# do not give privileged information to anyone else
+						handOverCard.rpc_id(a, id, "")
+			
+			# mark the player as ready for the next round
+			playersReady.append(id)
+			
+			# see if everyone is ready or not
+			if len(playersReady) == players.size():
+				approveGameStateChange.rpc("Turn", 1)
 	# TODO decide if this is the right client to call
 	# TODO implement turn code
 	# TODO call this after lobby creation
 	# TODO ensure that the clients have been notified
-	pass
+
+## Called when the server wants the game state to change.
+## To get the game state to change, call "changeGameState" on the server using rpc_id
+@rpc("authority", "reliable", "call_local")
+func approveGameStateChange(name: String, player: int):
+	var oldName: String = gameState.name
+	var oldPlayer: int = gameState.player
+	print("Game state change approved: ", name, ", ", player)
+	gameState = {
+		"name": name,
+		"player": player
+	}
+	
+	gameStateChange.emit(oldName, oldPlayer)
 
 ## Called when all players' turns have expired and a new round start. Should ONLY be called by the host.
 func serverNextRound():
@@ -355,9 +400,10 @@ func changeActiveMove():
 
 ## Called when the server wants to hand over a card into the client's inventory.
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
-## This function has a special behaviour when the player's inventory is already full TODO @experimental 
+## This function has a special behaviour when the player's inventory is already full TODO @experimental
+## The target parameter refers to the player (ID) who has received the card.
 # TODO fix up RPC paramters
 # TODO use rpc_id to call this function properly
 @rpc("authority", "call_local", "reliable")
-func handOverCard(card: Card):
+func handOverCard(target: int, card: String):
 	pass

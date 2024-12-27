@@ -1,69 +1,98 @@
-[gd_scene load_steps=5 format=3 uid="uid://ckxd4jjj6mxa0"]
+[gd_scene load_steps=6 format=3 uid="uid://ckxd4jjj6mxa0"]
 
 [ext_resource type="Texture2D" uid="uid://cgia6o3vr4fbo" path="res://assets/lobby/Icon_Wywy.png" id="1_ia4xm"]
 [ext_resource type="Script" path="res://scripts/host_lobby.gd" id="1_ky6xf"]
 [ext_resource type="Texture2D" uid="uid://db2kfx4g70qeu" path="res://assets/lobby/Icon_Stickman.png" id="2_7bokt"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_68frg"]
-font_size = 200
+[sub_resource type="LabelSettings" id="LabelSettings_mbwhg"]
+font_size = 75
 
-[node name="host_lobby" type="Node2D"]
+[sub_resource type="LabelSettings" id="LabelSettings_l2fkt"]
+font_size = 75
+
+[node name="host_lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_ky6xf")
 
-[node name="Icon_Wywy" type="Sprite2D" parent="."]
-position = Vector2(255, 152)
-scale = Vector2(0.25, 0.25)
+[node name="Icon_Wywy" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.3
+anchor_bottom = 0.6
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("1_ia4xm")
+expand_mode = 1
 
-[node name="YOU" type="Label" parent="Icon_Wywy"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -586.5
-offset_top = -54.1631
-offset_right = -163.5
-offset_bottom = 218.837
+[node name="Icon_Stickman" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.6
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_7bokt")
+expand_mode = 1
+
+[node name="YOU" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.6
+anchor_right = 0.3
+anchor_bottom = 0.75
+offset_top = -2.89999
+offset_bottom = 2.90002
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-text = "YOU"
-label_settings = SubResource("LabelSettings_68frg")
+text = "You"
+label_settings = SubResource("LabelSettings_mbwhg")
+horizontal_alignment = 1
+uppercase = true
 language = "English"
 
-[node name="Icon_Stickman" type="Sprite2D" parent="."]
-position = Vector2(885, 166)
-scale = Vector2(0.245333, 0.245333)
-texture = ExtResource("2_7bokt")
-
-[node name="YOU" type="Label" parent="Icon_Stickman"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -586.5
-offset_top = -54.1631
-offset_right = -163.5
-offset_bottom = 218.837
+[node name="Player 2" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7
+anchor_top = 0.6
+anchor_right = 0.9
+anchor_bottom = 0.75
+offset_top = -2.89999
+offset_bottom = 2.90002
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 text = "???"
-label_settings = SubResource("LabelSettings_68frg")
+label_settings = SubResource("LabelSettings_l2fkt")
+horizontal_alignment = 1
 language = "English"
 
 [node name="StartGameButton" type="Button" parent="."]
-offset_left = 463.0
-offset_top = 410.0
-offset_right = 592.0
-offset_bottom = 539.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.65
+anchor_right = 0.65
+anchor_bottom = 0.8
+grow_horizontal = 2
+grow_vertical = 2
 disabled = true
 text = "Waiting for second player..."
 
 [node name="Player Name" type="TextEdit" parent="."]
 visible = false
+layout_mode = 0
 offset_left = 486.0
 offset_top = 339.0
 offset_right = 665.0
@@ -71,9 +100,14 @@ offset_bottom = 399.0
 placeholder_text = "Enter your name"
 
 [node name="Status Message" type="Label" parent="."]
-offset_left = 422.0
-offset_right = 751.0
-offset_bottom = 91.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_right = 0.65
+anchor_bottom = 0.2
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
 
 [node name="Timer" type="Timer" parent="Status Message"]
 wait_time = 5.0
