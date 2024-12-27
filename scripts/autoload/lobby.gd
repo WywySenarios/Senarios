@@ -210,15 +210,13 @@ func startGame():
 
 	
 	if multiplayer.is_server():
-		var cardsToPassIn: Array[Card]
-		
 		# the server is responsible for telling the users which starting hands they have received
 		for i in players:
 			# shuffle everyones' decks without notifying them
 			players[i].deck.shuffle()
 			
 			# tell the player which starting hand they have received
-			cardsToPassIn = [players[i].deck.content[0], players[i].deck.content[1], players[i].deck.content[2], players[i].deck.content[3]]
+			var cardsToPassIn: Array[Card] = [players[i].deck.content[0], players[i].deck.content[1], players[i].deck.content[2], players[i].deck.content[3]]
 			startingHand.rpc_id(i, cardsToPassIn)
 	
 
@@ -244,7 +242,7 @@ func shuffleDeck(id: int):
 ## ID refers to the player whose deck has changed.
 ## @experimental
 # TODO specify RPC paramters to ensure security
-@rpc("authority")
+@rpc("authority", "reliable")
 func changeDeckLength(deckLength: int, id: int):
 	# TODO discover whether or not the signal should be emitted before (to preserve the correct old value) or after (because that's what's intuitive)
 	deckUpdated.emit(id, deckLength)
@@ -253,15 +251,15 @@ func changeDeckLength(deckLength: int, id: int):
 
 
 ## Called by the server to notify the client about their starting hand.
-@rpc("authority", "call_local")
+@rpc("authority", "call_local", "reliable")
 func startingHand(cards: Array[Card]):
-	print("startingHand")
 	for i in range(len(cards)):
+		print("emits", i, cards[i])
 		newCard.emit(i, cards[i])
 
 ## Called when the player wants to redraw a card during the card selection phase.
 # TODO fix up RPC paramters
-@rpc("any_peer")
+@rpc("any_peer", "reliable")
 func rerollWish(index: int, id: int):
 	# check for valid input
 	if 0 <= index and index <= 3: # IDK why I need the "and" keyword here XD
@@ -275,7 +273,7 @@ func rerollWish(index: int, id: int):
 
 ## Called on by the server to notify the respective user that their reroll has been approved.
 ## The only (intended) thing this does is emit a signal to notify the level scene to update the UI.
-@rpc("authority")
+@rpc("authority", "reliable")
 func approvedRerollWish(index: int, card: Card):
 	newCard.emit(index, card)
 
