@@ -4,7 +4,7 @@ class_name Deck
 ## The size of a Senarios deck is always 40.
 const initialLength = 40
 
-@export var content: Array[Card] = []
+@export var content: Array[String] = []
 
 func _ready() -> void:
 	# Warn about invalid decks

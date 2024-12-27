@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://q1qr8p5b068p"]
 
 [ext_resource type="Script" path="res://scripts/deck_maker/deck_maker.gd" id="1_0qm7y"]
-[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://Scenes/card.tscn" id="1_bi0u3"]
+[ext_resource type="PackedScene" uid="uid://l6f4hac8biah" path="res://scenes/card.tscn" id="1_bi0u3"]
 [ext_resource type="Texture2D" uid="uid://dcxprxb62qkle" path="res://assets/cards/card_images/entity_wywy_wywySwordsman.jpg" id="2_csa3g"]
 [ext_resource type="Script" path="res://scripts/card/card.gd" id="3_xsx3l"]
 [ext_resource type="Script" path="res://scripts/Deck Area.gd" id="4_xps3f"]

@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbgkh16gjqmti"]
+[gd_scene load_steps=8 format=3 uid="uid://dbgkh16gjqmti"]
 
 [ext_resource type="Script" path="res://scripts/level/Grid.gd" id="1_gsu1h"]
 [ext_resource type="Script" path="res://scripts/level.gd" id="1_p32ov"]
+[ext_resource type="Script" path="res://scripts/card/card.gd" id="3_a22dk"]
 [ext_resource type="PackedScene" uid="uid://b07e3x75q8tu1" path="res://scenes/level/draw_card.tscn" id="4_k0yv3"]
 [ext_resource type="PackedScene" uid="uid://5qux38olj7v8" path="res://scenes/level/inventory.tscn" id="4_yalkr"]
 
@@ -25,11 +26,11 @@ texture = SubResource("GradientTexture2D_k23pq")
 
 [node name="Far Inventory" parent="Inventories" instance=ExtResource("4_yalkr")]
 position = Vector2(0, -500)
-cardArray = Array[Resource("res://scripts/card/card.gd")]([])
+cardArray = Array[ExtResource("3_a22dk")]([])
 
 [node name="My Inventory" parent="Inventories" instance=ExtResource("4_yalkr")]
 position = Vector2(0, 500)
-cardArray = Array[Resource("res://scripts/card/card.gd")]([])
+cardArray = Array[ExtResource("3_a22dk")]([])
 
 [node name="HUD" type="Control" parent="."]
 layout_mode = 3
@@ -46,14 +47,14 @@ script = ExtResource("1_gsu1h")
 
 [node name="Card Draw" type="Node2D" parent="."]
 
+[node name="0" parent="Card Draw" instance=ExtResource("4_k0yv3")]
+position = Vector2(-375, 0)
+
 [node name="1" parent="Card Draw" instance=ExtResource("4_k0yv3")]
 position = Vector2(-125, 0)
 
 [node name="2" parent="Card Draw" instance=ExtResource("4_k0yv3")]
 position = Vector2(125, 0)
-
-[node name="0" parent="Card Draw" instance=ExtResource("4_k0yv3")]
-position = Vector2(-375, 0)
 
 [node name="3" parent="Card Draw" instance=ExtResource("4_k0yv3")]
 position = Vector2(375, 0)

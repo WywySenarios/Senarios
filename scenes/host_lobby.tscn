@@ -1,14 +1,14 @@
 [gd_scene load_steps=5 format=3 uid="uid://ckxd4jjj6mxa0"]
 
-[ext_resource type="Script" path="res://scripts/host_lobby.gd" id="1_3h8c1"]
-[ext_resource type="Texture2D" uid="uid://dlde5ld1d2mh4" path="res://assets/lobby/Icon_Wywy.png" id="1_ia4xm"]
-[ext_resource type="Texture2D" uid="uid://h8r22y6iw5gb" path="res://assets/lobby/Icon_Stickman.png" id="2_7bokt"]
+[ext_resource type="Texture2D" uid="uid://cgia6o3vr4fbo" path="res://assets/lobby/Icon_Wywy.png" id="1_ia4xm"]
+[ext_resource type="Script" path="res://scripts/host_lobby.gd" id="1_ky6xf"]
+[ext_resource type="Texture2D" uid="uid://db2kfx4g70qeu" path="res://assets/lobby/Icon_Stickman.png" id="2_7bokt"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_68frg"]
 font_size = 200
 
 [node name="host_lobby" type="Node2D"]
-script = ExtResource("1_3h8c1")
+script = ExtResource("1_ky6xf")
 
 [node name="Icon_Wywy" type="Sprite2D" parent="."]
 position = Vector2(255, 152)

@@ -55,12 +55,13 @@ func repositionCards():
 		# T
 		
 		#IDK why the index corrections work, but they do
-		# @warning_ignore("integer_division")
+		@warning_ignore("integer_division")
 		var indexCorrectionPositive = len(cards) / 2 - 2
-		# @warning_ignore("integer_division")
+		@warning_ignore("integer_division")
 		var indexCorrectionNegative = -(len(cards) / 2 - 1)
 		
 		# loops through the absolute value of the distance from the center
+		@warning_ignore("integer_division")
 		for distanceFromCenter: int in range(1, len(cards) / 2 + 1):			
 			cards[indexCorrectionPositive + distanceFromCenter].position.x = (distanceFromCenter * (gapSize + cardWidth) - cardWidth / 2.0)
 			cards[indexCorrectionNegative + distanceFromCenter].position.x = -(distanceFromCenter * (gapSize + cardWidth) - cardWidth / 2.0)
@@ -68,7 +69,7 @@ func repositionCards():
 			#print("Inventory card positions: ", distanceFromCenter, " ", indexCorrectionPositive + distanceFromCenter, " ", cards[indexCorrectionPositive + distanceFromCenter].position, " ", cards[indexCorrectionPositive + distanceFromCenter].global_position)
 			#print("Inventory card positions: ", -distanceFromCenter, " ", indexCorrectionNegative + distanceFromCenter, " ", cards[indexCorrectionNegative + distanceFromCenter].position, " ", cards[indexCorrectionNegative + distanceFromCenter].global_position)
 	else: # odd number of cards
-		# @warning_ignore("integer_division")
+		@warning_ignore("integer_division")
 		var indexCorrection = len(cards) / 2
 		
 		for distanceFromCenter: int in range(-indexCorrection, indexCorrection + 1):

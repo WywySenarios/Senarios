@@ -19,6 +19,9 @@ func _ready():
 	# someone's energy has changed
 	# someone's health has changed
 	
+	# If you are the host, calling this will enable the card selection phase to start
+	Lobby.preGame()
+	
 	# start the card drawing phase
 	# Make everything that is not card selection related somewhat transparent
 	# inventories
@@ -46,21 +49,21 @@ func cardWish(cardNode: Node2D):
 		Lobby.rerollWish.rpc_id(1, cardNode.index, Lobby.myID)
 
 ## Called during the card selection phase after the server gives the player their starting cards, OR the server approves the player to switch cards
-func changeCardSelectionCard(index: int, newCard: Card):
-	print('changeCardSelectionCard')
-	# TODO implement
-	var relevantNode: Node2D
+func changeCardSelectionCard(index: int, newCard: String):
+	var relevantNode: Node2D = null
+	
+	# I actually can't fathom why get_node can't take in a string. This is absolutely stupid.
 	if index > 3:
-		$"Card Draw".get_node(str(index - 4))
+		relevantNode = $"Card Draw".get_node(NodePath(str(index - 4)))
 	else:
-		$"Card Draw".get_node(str(index))
+		relevantNode = $"Card Draw".get_node(NodePath(str(index)))
 	
 	# Type safety (null check)
 	if relevantNode == null:
-		print("Card selection card's node was null. Aborting update...")
+		print("Card selection card's node was null. Aborting update...", NodePath(str(index)), ", ", Lobby.myID)
 		return
 	
-	relevantNode.reassignCard(index, newCard)
+	relevantNode.reassignCard(index, load("res://resources/" +  newCard + ".tres"))
 
 ## Does not guarentee that the correct energy change has been displayed (if the client's current energy reading is wrong).
 ## However, this function updates the GUI so that the correct energy count is displayed for the respective player.

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://5qux38olj7v8"]
+
+[ext_resource type="Script" path="res://scripts/level/inventory.gd" id="1_jf0b6"]
+
+[sub_resource type="GDScript" id="GDScript_i5x8s"]
+script/source = "class_name Card extends Resource
+
+@export var name : String = \"N/A\"
+@export var cardType : String = \"\"
+@export_range(1, 6) var generation : int
+@export var cost : float = 0
+@export var type : Array[String]
+@export var image : CompressedTexture2D
+"
+
+[node name="Inventory" type="Node2D"]
+script = ExtResource("1_jf0b6")
+cardArray = Array[SubResource("GDScript_i5x8s")]([null])

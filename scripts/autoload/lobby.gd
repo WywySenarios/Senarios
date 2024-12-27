@@ -27,11 +27,6 @@ const DEFAULT_PLAYER_NAME: String = "???"
 ## This dictionary is only populated with all the correct content on the server. Clients should have a limited access to correct information.
 ## @experimental
 var players: Dictionary = {}
-## This will contain the indexes of the starting cards that the player wishes to have.
-## Each key should be the player's id (integer). Each value should be an array with the indexes of their deck that they want.
-## The array should be like this: [0 or 4, 1 or 5, 2 or 6, 3 or 7].
-## Clients should NOT have access to this information
-var playersStartingHandIndexes: Dictionary = {}
 
 ## This contains all the ids of the players who have successfully chosen their starting hand.
 var playersReady = []
@@ -53,7 +48,8 @@ var playerIDs: Array[int]
 
 
 # signals to be used during the card draw phase:
-signal newCard(index: int, card: Card)
+## This signal emits with the index of the deck and a string with the card ID
+signal newCard(index: int, card: String)
 
 
 
@@ -70,8 +66,10 @@ signal inventoryUpdated(id: int, oldInventorySize: int)
 ## It is intended for the client to play an animation when this signal is called.
 signal deckUpdated(id: int, oldDeckSize: int)
 
-signal moveUpdated(index: Array[int], move: Move)
-signal abilityUpdated(index: Array[int], ability: Ability)
+## This signal emits with the index related to the grid and the move ID
+signal moveUpdated(index: Array[int], move: String)
+## This signal emits the index related to the grid and the ability ID
+signal abilityUpdated(index: Array[int], ability: String)
 ## will be split into seperate signals later.
 ## @deprecated
 signal cardStatUpdated(index: Array[int], statName: String, newMagnitude: int)
@@ -79,7 +77,7 @@ signal playerHealthUpdated(id: int, oldHealth: int)
 signal playerEnergyUpdated(id: int, oldEnergy: int)
 
 # Gameplay variables:
-var round: int = 0
+var gameRound: int = 0
 
 func _ready():
 	multiplayer.peer_connected.connect(peerConnected)
@@ -208,7 +206,8 @@ func startGame():
 	# load the correct scene
 	get_tree().change_scene_to_file("res://scenes/level.tscn")
 
-	
+## Pre-cardDraw stage functionality
+func preGame():	
 	if multiplayer.is_server():
 		# the server is responsible for telling the users which starting hands they have received
 		for i in players:
@@ -216,7 +215,7 @@ func startGame():
 			players[i].deck.shuffle()
 			
 			# tell the player which starting hand they have received
-			var cardsToPassIn: Array[Card] = [players[i].deck.content[0], players[i].deck.content[1], players[i].deck.content[2], players[i].deck.content[3]]
+			var cardsToPassIn: Array[String] = [players[i].deck.content[0], players[i].deck.content[1], players[i].deck.content[2], players[i].deck.content[3]]
 			startingHand.rpc_id(i, cardsToPassIn)
 	
 
@@ -251,10 +250,10 @@ func changeDeckLength(deckLength: int, id: int):
 
 
 ## Called by the server to notify the client about their starting hand.
+## The argument is an array of strings relating to the cards' resource path relative to the resource folder.
 @rpc("authority", "call_local", "reliable")
-func startingHand(cards: Array[Card]):
+func startingHand(cards: Array[String]):
 	for i in range(len(cards)):
-		print("emits", i, cards[i])
 		newCard.emit(i, cards[i])
 
 ## Called when the player wants to redraw a card during the card selection phase.
@@ -264,8 +263,7 @@ func rerollWish(index: int, id: int):
 	# check for valid input
 	if 0 <= index and index <= 3: # IDK why I need the "and" keyword here XD
 		if multiplayer.is_server(): # ensure only the server responds
-			playersStartingHandIndexes[id][index] += 4
-			approvedRerollWish.rpc_id(id, index + 4, players[id].deck[index + 4])
+			approvedRerollWish.rpc_id(id, index + 4, players[id].deck.content[index + 4])
 	else:
 		return
 	# contact ONLY the player who has drawn the card that they have received a new card.
@@ -274,7 +272,7 @@ func rerollWish(index: int, id: int):
 ## Called on by the server to notify the respective user that their reroll has been approved.
 ## The only (intended) thing this does is emit a signal to notify the level scene to update the UI.
 @rpc("authority", "reliable")
-func approvedRerollWish(index: int, card: Card):
+func approvedRerollWish(index: int, card: String):
 	newCard.emit(index, card)
 
 
@@ -299,13 +297,13 @@ func changeGameState(id: int):
 
 ## Called when all players' turns have expired and a new round start. Should ONLY be called by the host.
 func serverNextRound():
-	round += 1
+	gameRound += 1
 	var signalsToFire = []
 
 	for id in players:
 		# Players start out with one energy on turn one. On turn two, they get two energy, and this continues until the 10th turn, as the starting energy caps out at ten (without any specials, generators, etc.)
 		# the equals sign is there because the round number updates before the energyRate updates.
-		if round <= 10:
+		if gameRound <= 10:
 			players[id].energyRate += 1
 		
 		# give players more energy
@@ -315,7 +313,7 @@ func serverNextRound():
 
 		# give players more cards
 		var oldInventorySize = players[id].inventory.size()
-		players[id]
+		
 		signalsToFire.append(emit_signal.bind("inventoryUpdated", id, oldInventorySize)) # prepare to broadcast change
 		
 

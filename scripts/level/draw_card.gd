@@ -18,9 +18,8 @@ var mouseInside: bool = false
 #func _process(delta):
 	#pass
 
-func reassignCard(index: int, card: Card):
-	print('yes')
-	self.index = index
+func reassignCard(_index: int, card: Card):
+	index = _index
 	$card_head.texture = card.image
 
 func _on_button_button_down():

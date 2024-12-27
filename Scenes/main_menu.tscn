@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://dmpuh4k3usl1l"]
 
-[ext_resource type="Script" path="res://scripts/main_menu/main_menu.gd" id="1_ovtqs"]
-[ext_resource type="Texture2D" uid="uid://cyebdsx2yg0we" path="res://assets/main_menu.png" id="2_tu0g1"]
+[ext_resource type="Script" path="res://scripts/main_menu/main_menu.gd" id="1_j18e4"]
+[ext_resource type="Texture2D" uid="uid://couc5x1btobvt" path="res://assets/main_menu.png" id="2_tu0g1"]
 
 [node name="Node" type="Node"]
-script = ExtResource("1_ovtqs")
+script = ExtResource("1_j18e4")
 
 [node name="Main Menu Sprite" type="Sprite2D" parent="."]
 position = Vector2(575.889, 323.375)

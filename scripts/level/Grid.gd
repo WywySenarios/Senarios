@@ -10,7 +10,7 @@ extends Node2D
 ## Margin between gridtiles in pixels.
 @export var margin: int = 15
 
-const gridTileScene = await preload("res://Scenes/level/grid_tile.tscn")
+const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 
 
 # Not exported variables:
@@ -51,6 +51,7 @@ func _ready() -> void:
 				
 				# Use integer division and add one to find middle.
 				# Counteract index starting at 0 by adding 1 at the end.
+				@warning_ignore("integer_division")
 				distanceFromCenter = b - (width / 2 + 1) + 1
 				
 				# default pos + # of tiles * (gap + tile)
@@ -59,16 +60,21 @@ func _ready() -> void:
 				
 				# subtract 0.5 because no card is at position (0,0). IDK why it works, but it does!
 				# Counteract index starting at 0 by adding 1 at the end.
+				@warning_ignore("integer_division")
 				distanceFromCenter = b - (width / 2) - 0.5 + 1
 				
 				# 0.5 * (gap + tile) + # of tiles * (gap + tile)
 				# 0.5 is baked in to # of tiles due to the 0.5 being subtracted in the "distanceFromCenter" variable. :D
+				@warning_ignore("integer_division")
 				currentGridTile.position.x = distanceFromCenter * (margin + tileLength)
 			if (oddTiles[0]): # height is odd, similar logic to width
+				@warning_ignore("integer_division")
 				distanceFromCenter = a - (height / 2 + 1) + 1
 				
+				@warning_ignore("integer_division")
 				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
 			else: # height is even, similar logic to width
+				@warning_ignore("integer_division")
 				distanceFromCenter = a - (width / 2) - 0.5 + 1
 				
 				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
