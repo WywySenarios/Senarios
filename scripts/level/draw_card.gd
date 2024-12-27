@@ -17,7 +17,12 @@ var mouseInside: bool = false
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
 	#pass
-	
+
+func reassignCard(index: int, card: Card):
+	print('yes')
+	self.index = index
+	$card_head.texture = card.image
 
 func _on_button_button_down():
-	clicked.emit(self)
+	if 0 <= index and index <= 3: # do NOT refresh the card after it has already been refreshed once
+		clicked.emit(self)

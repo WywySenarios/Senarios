@@ -1,7 +1,9 @@
 extends Node2D
 
 # Exported variables:
+## @experimental
 @export var height: int = 5
+## @experimental
 @export var width: int = 5
 ## Tile width in pixels
 @export var tileLength: int = 150
@@ -85,7 +87,7 @@ func _ready() -> void:
 	
 	
 	# Connect signals of every card inside the scene
-	for i in get_parent().get_node("My Inventory").get_children():
+	for i in get_parent().get_node("Inventories").get_node("My Inventory").get_children():
 		i.place.connect(_on_card_placement)
 
 

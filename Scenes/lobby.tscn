@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://dfkwf1fja0524"]
 
-[ext_resource type="Script" path="res://scripts/lobby.gd" id="1_dxodn"]
+[ext_resource type="Script" path="res://scripts/Lobby.gd" id="1_dxodn"]
 [ext_resource type="Texture2D" uid="uid://dlde5ld1d2mh4" path="res://assets/lobby/Icon_Wywy.png" id="2_ccq84"]
 [ext_resource type="Texture2D" uid="uid://h8r22y6iw5gb" path="res://assets/lobby/Icon_Stickman.png" id="3_rgnuj"]
 
