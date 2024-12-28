@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 
 # Called when the node enters the scene tree for the first time.
@@ -31,7 +31,7 @@ func playerInfoChanged(id: int) -> void:
 	if id == 1: # if the host's information changed
 		# change name to match the host's name
 		# this is NOT confirmed to work
-		$"Icon_Wywy/YOU".text = Lobby.players[id].name
+		$"Host".text = Lobby.players[id].name
 
 ## This function broadcasts a message to the user via the $"Status Message" label node.
 func broadcastMessage(message: String) -> void:

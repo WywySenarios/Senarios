@@ -105,6 +105,7 @@ tooltip_text = "Join Game"
 text = "Join Game"
 
 [node name="Status Message" type="Label" parent="."]
+layout_mode = 0
 offset_left = 486.0
 offset_top = 35.0
 offset_right = 638.0

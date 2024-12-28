@@ -1,10 +1,10 @@
-extends Node2D
+extends Control
 
 ## The index of the deck this card refers to.
 @export var index: int = -1
 
 ## Emitted when this card is clicked, and therefore emitted when the user wishes to redraw a card.
-signal clicked(card: Node2D)
+signal clicked(card: Control)
 
 # is the player's mouse hovering over this card right now?
 var mouseInside: bool = false
@@ -20,8 +20,8 @@ var mouseInside: bool = false
 
 func reassignCard(_index: int, card: Card):
 	index = _index
-	$card_head.texture = card.image
+	$"Frontside/card_head".texture = card.image
 
-func _on_button_button_down():
+func swapCard():
 	if 0 <= index and index <= 3: # do NOT refresh the card after it has already been refreshed once
 		clicked.emit(self)
