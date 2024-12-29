@@ -1,12 +1,22 @@
 extends Node
+#region Server Constants
+const PORT: int = 5323
+const DEFAULT_SERVER_IP: String = "127.0.0.1" # IPv4 localhost
+const MIN_CONNECTIONS: int = 2
+const MAX_CONNECTIONS: int = 2
+const DEFAULT_PLAYER_NAME: String = "???"
+#endregion
 
-# These signals can be connected to by a UI lobby scene or the game scene.
+#region Generic Server Signals
 signal player_connected(peer_id)
 signal player_disconnected(peer_id)
 signal server_disconnected
 signal server_up ## emitted when there is an attempt to initialize the server. Returns a string relevant to the outcome of the server initiailization attempt.
 signal player_info_changed(peer_id)
+#endregion
 
+#region Player Information
+## Temporary varaible. Not used after the lobby phase ends.
 var peer
 ## Stores the ID of the client
 var myID: int = -1
@@ -14,15 +24,13 @@ var myID: int = -1
 var myName: String
 ## stores the current player
 var me: Player = null
+## Stores the reference to the level scene
+var levelScene: Control
+#endregion
 
-const PORT: int = 5323
-const DEFAULT_SERVER_IP: String = "127.0.0.1" # IPv4 localhost
-const MIN_CONNECTIONS: int = 2
-const MAX_CONNECTIONS: int = 2
-const DEFAULT_PLAYER_NAME: String = "???"
-
-
-# Data section
+#region Server Data
+# ----------------------------------------
+# Server Data: INFO informs important information relating to both the server and the game
 ## This will contain player info for every player, with the keys being each player's unique IDs.
 ## Each key should be the player's id (integer). Each value should be a player object.
 ## This dictionary is only populated with all the correct content on the server. Clients should have a limited access to correct information.
@@ -34,8 +42,6 @@ var playersReady = []
 
 ## Stores all the card selection indexes. Key is the player ID, value is an array with the deck indexes selected.
 var playerCardSelectionIndexes: Dictionary = {}
-
-
 
 ## Stores the current stage of the game:
 ## {
@@ -50,23 +56,22 @@ var gameState: Dictionary = {
 ## An array that contains EVERY player's ID.
 var playerIDs: Array[int]
 
+var gameRound: int = 0
+#endregion
 
-
-
+#region Card Draw Phase Signals
+# ----------------------------------------
 # signals to be used during the card draw phase:
 ## This signal emits with the index of the deck and a string with the card ID
 signal newCard(index: int, card: String)
+#endregion
 
-
-
-
-
-
-# signals for use during gameplay:
-## Called when the inventory size of a player has been updated.
+#region Gameplay Event Signals
+## Called when a player has gained a new card.
 ## ID refers to the player whose inventory has been updated.
 ## It is intended for the client to play an animation when this signal is called.
-signal inventoryUpdated(id: int, oldInventorySize: int)
+## The card parameter may be a single card or an array of cards.
+signal inventorySizeIncreased(id: int, oldInventorySize: int, card)
 ## Called when the deck size of a player has been updated.
 ## ID refers to the player whose deck has been updated.
 ## It is intended for the client to play an animation when this signal is called.
@@ -82,9 +87,7 @@ signal cardStatUpdated(index: Array[int], statName: String, newMagnitude: int)
 signal playerHealthUpdated(id: int, oldHealth: int)
 signal playerEnergyUpdated(id: int, oldEnergy: int)
 signal gameStateChange(oldGameStateName: String, oldGameStatePlayer: int)
-
-# Gameplay variables:
-var gameRound: int = 0
+#endregion
 
 func _ready():
 	multiplayer.peer_connected.connect(peerConnected)
@@ -117,12 +120,13 @@ func connectedToServer():
 func connectionFailed():
 	print("Couldn't connect.")
 
+#region Lobby & Pre-game Functions
 ## ONLY to be called when a player is joining through the lobby
 @rpc("any_peer")
-func sendPlayerName(name: String, id: int, signalToFire: Signal = player_info_changed):
+func sendPlayerName(playerName: String, id: int, signalToFire: Signal = player_info_changed):
 	if !players.has(id):
 		players[id] = Player.new()
-		players[id].name = name
+		players[id].name = playerName
 		#players[id].energy = 0
 		#players[id]["isTheirTurn"] = false
 		players[id].id = id
@@ -149,8 +153,6 @@ func sendFullPlayerInformation(player: Player, id, signalToFire: Signal = player
 		me = players[id]
 	
 	signalToFire.emit(id)
-
-
 
 ## This function creates a server and connects the person who is currently trying to host to their own server.
 func createServer(playerName: String):
@@ -230,15 +232,7 @@ func preGame():
 		
 		# start the card selection game stage
 		approveGameStateChange.rpc("Card Draw", -1)
-	
-
-
-
-
-
-
-
-# This function sends the player info of the host to the other client.
+#endregion
 
 
 ## Reshuffles the deck of the player with the ID specified.
@@ -303,17 +297,16 @@ func changeGameState(id: int):
 	if multiplayer.is_server():
 		# if the current state of the game is ...,
 		if gameState.name == "Card Draw":
-			# TODO implement card selection phase code
-			# give the players their cards
-			for i in playerCardSelectionIndexes[id]:
-				# tell every player about the new card
-				for a in players:
-					if a == id or a == 1:
-						# give the correct card information to the host and respective player
-						handOverCard.rpc_id(a, id, players[id].deck.content[i])
-					else:
-						# do not give privileged information to anyone else
-						handOverCard.rpc_id(a, id, "")
+			if playersReady.find(id) != -1: # if the player already readied up,
+				return # do NOT do anything.
+			
+			
+			# give the player their cards
+			for a in playerCardSelectionIndexes[id]:
+				drawCard(id, a) # players draw the respective index of their deck
+				
+			# shuffle deck because the players have already peaked at the first couple of cards
+			shuffleDeck(id)
 			
 			# mark the player as ready for the next round
 			playersReady.append(id)
@@ -396,14 +389,67 @@ func changeActiveMove():
 	# TODO ensure the right person has called the function at the right time
 	# TODO ensure updates are pushed
 	pass
+	
+## The function that handles a player drawing a card from their deck.
+@rpc("authority", "call_local", "reliable")
+func drawCard(target: int, deckIndex: int):
+	handOverCard(target, players[target].deck.content[deckIndex])
 
-
-## Called when the server wants to hand over a card into the client's inventory.
+## The function that gets called when someone is to receive a card (not necessarily a draw card function)
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
 ## This function has a special behaviour when the player's inventory is already full TODO @experimental
 ## The target parameter refers to the player (ID) who has received the card.
-# TODO fix up RPC paramters
-# TODO use rpc_id to call this function properly
 @rpc("authority", "call_local", "reliable")
-func handOverCard(target: int, card: String):
-	pass
+func handOverCard(target: int, _card: String):
+	var card: Card = load("res://resources/" + _card + ".tres")
+	var oldInventorySize: int = len(players[target].inventory)
+	
+	# store the card in the right player
+	players[target].inventory.append(card)
+	
+	# notify other scenes that a player's inventory has updated
+	inventorySizeIncreased.emit(target, oldInventorySize, card)
+	
+	
+	if multiplayer.is_server():
+		# broadcast a potentially censored message to everyone
+		for i in players:
+			if i == 1: # do NOT tell the host about it (this would cause infinite recursion)
+				pass
+			elif i == target: # tell the recipient about the contents of the actual card
+				handOverCard.rpc_id(i, target, _card)
+			else: # censor the card contents
+				handOverCard.rpc_id(i, target, "empty")
+
+
+## The function that gets called when someone is to receive multiple cards at once (not necessarily a draw card function)
+## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
+## This function has a special behaviour when the player's inventory is already full TODO @experimental
+## The target parameter refers to the player (ID) who has received the card.
+@rpc("authority", "call_local", "reliable")
+func handOverCards(target:int, _cards: Array[String]):
+	var card: Card
+	var oldInventorySize: int = len(players[target].inventory)
+	var censoredCards = []
+	
+	for i in _cards:
+		card = load("res://resources/" + i + ".tres")
+		censoredCards.append("empty")
+		
+		# store the card in the right player
+		players[target].inventory.append(card)
+	
+	# notify other scenes that a player's inventory has updated
+	inventorySizeIncreased.emit(target, oldInventorySize, _cards)
+	
+	
+	if multiplayer.is_server():
+		
+		# broadcast a potentially censored message to everyone
+		for i in players:
+			if i == 1: # do NOT tell the host about it (this would cause infinite recursion)
+				pass
+			elif i == target: # tell the recipient about the contents of the actual card
+				handOverCards.rpc_id(i, target, _cards)
+			else: # censor the card contents
+				handOverCards.rpc_id(i, target, censoredCards)

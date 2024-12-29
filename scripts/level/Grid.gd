@@ -25,6 +25,25 @@ var activeGridTile: Control
 ## Utility RNG to be used for visuals, where being truly random does not matter at all.
 var utilityRNG = RandomNumberGenerator.new()
 
+func _ready():
+	# TODO don't hardcode this
+	activeCards.resize(5)
+	activeCards.fill([null, null, null, null, null])
+	
+	gridTiles.resize(5)
+	gridTiles.fill([null, null, null, null, null])
+	
+	var metadata
+	for i in get_children():
+		metadata = i.name.split(',')
+		metadata = [int(metadata[0]), int(metadata[1])]
+		i.set_meta("id", metadata)
+		i.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(i))
+		i.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(i))
+		
+		gridTiles[metadata[0]][metadata[1]] = i
+
+#region Old Grid Creation Code
 # Called when the node enters the scene tree for the first time.
 ## Create grid tiles.
 ## Connects grid tile signals & card signals.
@@ -63,7 +82,7 @@ var utilityRNG = RandomNumberGenerator.new()
 	## Connect signals of every card inside the scene
 	#for i in get_parent().get_node("Inventories").get_node("My Inventory").get_children():
 		#i.place.connect(_on_card_placement)
-
+#endregion
 
  #Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta: float) -> void:
@@ -79,39 +98,38 @@ func _on_mouse_entered_gridtile(tile: Control) -> void:
 ## This function is intended for detecting where the player might not want to place the card.
 ## This function should trigger when the mouse leaves a grid tile.
 func _on_mouse_exit_gridtile(tile: Control) -> void:
-	activeGridTile = null
-
-## @experimental
-## @deprecated: use _on_card_placement
-## This function should be called when the player releases their mouse button when dragging a card.
-## This function returns true if the player wishes to play a card. It returns false otherwise.
-func requestPlacement(card: Node2D) -> bool:
-	print("someone requested a card placement! Should the card get placed? ", activeGridTile != null)
-	
-	return activeGridTile != null
+	if activeGridTile == self:
+		activeGridTile = null
 
 ## @experimental
 ## This function should be called whenever a player released their mouse button when dragging a card.
 ## This function handles events that follow when placing a card or returning the card to the player's inventory.
 ## This function should determine where and whether or not to place a card, call for animations, and call for sprite movement.
-func _on_card_placement(card: Node2D) -> void:
+func _on_card_placement(card: Control) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	if (activeGridTile != null):
 		# randomize the animation time. It just adds a tiny bit more flavor!
 		var animationTime = utilityRNG.randf_range(0.15, 0.35)
 		
-		var cardPositionTween = get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, animationTime).set_ease(Tween.EASE_OUT)
+		#var cardPositionTween =
+		get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
 		# rotate one revolution (1 rev = 2 pi)
-		get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime).set_ease(Tween.EASE_OUT)
+		#get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime) # .set_ease(Tween.EASE_OUT)
+		get_tree().create_tween().tween_property(card, "scale", Vector2(0.1, 0.1), animationTime)
 		# Register card in the correct position
 		# note: metadata "id" has y, x coordinates. They are the exact indexes of the array, so that's nice.
 		var index = activeGridTile.get_meta("id")
 		activeCards[index[0]][index[1]] = card
 		card.set_meta("locationIndex", [index[0], index[1]])
 		
-		# activate particles for placing the card down once it's on the board (card class handles this)
-		cardPositionTween.finished.connect(card._on_card_placement)
+		# remove the card from the inventory
+		card.get_parent().removeCard(card)
+		# add to the grid tile
+		activeGridTile.add_child(card)
+		
+		# TODO activate particles for placing the card down once it's on the board (card class handles this)
+		#cardPositionTween.finished.connect(card._on_card_placement)
 	else: # tell the card to go back to where it came from >:(
 		#print("Go back where you came from!")
 		get_tree().create_tween().tween_property(card, "global_position", card.initialPos, 0.2).set_ease(Tween.EASE_OUT)

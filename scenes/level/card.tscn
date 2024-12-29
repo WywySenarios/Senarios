@@ -1,23 +1,78 @@
-[gd_scene load_steps=6 format=3 uid="uid://w1e7gyi1mlqa"]
+[gd_scene load_steps=10 format=3 uid="uid://w1e7gyi1mlqa"]
 
 [ext_resource type="Script" path="res://scripts/level/card.gd" id="1_shkh5"]
 [ext_resource type="Material" uid="uid://bubg2n6lo8u66" path="res://components/card/particles/placement.tres" id="2_y56cs"]
 [ext_resource type="Texture2D" uid="uid://dgby1nges8l16" path="res://assets/cards/backside.png" id="3_kj426"]
 [ext_resource type="Texture2D" uid="uid://u585bwkcv34m" path="res://assets/cards/frontside.png" id="4_tt3v3"]
 
+[sub_resource type="Animation" id="Animation_oam2g"]
+resource_name = "Select"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Contents:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -85)]
+}
+
+[sub_resource type="Animation" id="Animation_gvdce"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Contents:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_byulc"]
+resource_name = "Deselect"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Contents:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, -85), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_6r1bh"]
+_data = {
+"Deselect": SubResource("Animation_byulc"),
+"RESET": SubResource("Animation_gvdce"),
+"Select": SubResource("Animation_oam2g")
+}
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rdpcm"]
 size = Vector2(170, 238)
 
-[node name="Card" type="Node2D"]
+[node name="Card" type="Container"]
+custom_minimum_size = Vector2(170, 240)
+offset_right = 170.0
+offset_bottom = 240.0
 script = ExtResource("1_shkh5")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-offset_left = 65.0
-offset_top = -140.0
-offset_right = 105.0
-offset_bottom = -100.0
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_6r1bh")
+}
 
 [node name="Particles" type="Node2D" parent="."]
+scale = Vector2(-0.325278, 0.121505)
 
 [node name="placement" type="GPUParticles2D" parent="Particles"]
 scale = Vector2(2.5, 2.5)
@@ -29,52 +84,67 @@ preprocess = 0.5
 speed_scale = 1.5
 local_coords = true
 
-[node name="Backside" type="Sprite2D" parent="."]
-scale = Vector2(0.225, 0.225)
+[node name="Contents" type="Node2D" parent="."]
+
+[node name="Backside" type="TextureRect" parent="Contents"]
+custom_minimum_size = Vector2(170, 240)
+offset_right = 170.0
+offset_bottom = 240.0
 texture = ExtResource("3_kj426")
+expand_mode = 5
 
-[node name="Frontside" type="Sprite2D" parent="."]
-position = Vector2(3.8147e-06, 0)
-scale = Vector2(0.225, 0.225)
+[node name="Frontside" type="TextureRect" parent="Contents"]
+custom_minimum_size = Vector2(170, 240)
+offset_right = 170.0
+offset_bottom = 240.0
 texture = ExtResource("4_tt3v3")
+expand_mode = 5
 
-[node name="card_head" type="Sprite2D" parent="."]
+[node name="card_head" type="TextureRect" parent="Contents"]
+custom_minimum_size = Vector2(170, 240)
+offset_right = 170.0
+offset_bottom = 240.0
+mouse_filter = 2
+expand_mode = 5
 
-[node name="card" type="Area2D" parent="."]
+[node name="card" type="Area2D" parent="Contents"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="card"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Contents/card"]
+position = Vector2(85, 119)
 shape = SubResource("RectangleShape2D_rdpcm")
 
-[node name="HP Container" type="CenterContainer" parent="."]
-offset_left = -60.0
-offset_top = 120.0
-offset_right = -41.0
-offset_bottom = 170.0
+[node name="HP Container" type="CenterContainer" parent="Contents"]
+visible = false
 
-[node name="HP" type="Label" parent="HP Container"]
+[node name="HP" type="Label" parent="Contents/HP Container"]
+visible = false
 layout_mode = 2
 text = "10"
 
-[node name="Attack Container" type="CenterContainer" parent="."]
-offset_left = 40.0
-offset_top = 120.0
-offset_right = 59.0
-offset_bottom = 170.0
+[node name="Attack Container" type="CenterContainer" parent="Contents"]
+visible = false
 
-[node name="Attack" type="Label" parent="Attack Container"]
+[node name="Attack" type="Label" parent="Contents/Attack Container"]
+visible = false
 layout_mode = 2
 text = "10"
 
-[node name="Label" type="Label" parent="."]
-offset_left = -75.0
-offset_top = 164.0
-offset_right = -35.0
-offset_bottom = 187.0
+[node name="Label" type="Label" parent="Contents"]
+visible = false
+offset_right = 22.0
+offset_bottom = 23.0
 text = "HP"
 
-[node name="Label2" type="Label" parent="."]
-offset_left = 31.0
-offset_top = 163.0
-offset_right = 71.0
-offset_bottom = 186.0
+[node name="Label2" type="Label" parent="Contents"]
+visible = false
+offset_right = 50.0
+offset_bottom = 23.0
 text = "Attack"
+
+[connection signal="gui_input" from="." to="." method="onGUIInput"]
+[connection signal="mouse_entered" from="." to="." method="onMouseEnteredInventory"]
+[connection signal="mouse_exited" from="." to="." method="onMouseExitedInventory"]
+[connection signal="mouse_entered" from="Contents/Backside" to="." method="onMouseEntered"]
+[connection signal="mouse_exited" from="Contents/Backside" to="." method="onMouseExited"]
+[connection signal="mouse_entered" from="Contents/Frontside" to="." method="onMouseEntered"]
+[connection signal="mouse_exited" from="Contents/Frontside" to="." method="onMouseExited"]

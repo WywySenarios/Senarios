@@ -12,24 +12,45 @@ var gameState: Dictionary = {
 
 var cardDrawNodes: Array[Node]
 
+var myNode
+var opponentNode
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# register this scene with the server autoload script
+	Lobby.levelScene = self
+	
+	# set the place where the cards will spawn when the gain card animation starts playing
+	# TODO the above comment needs to be clarified later.
+	$"Inventories/Far Inventory".cardSpawnPoint = $"Card Spawn Point"
+	$"Inventories/My Inventory".cardSpawnPoint = $"Card Spawn Point"
+	
 	# register child nodes
 	cardDrawNodes = [$"Card Draw Ready Button", $"Card Draw"]
+	myNode = $"Players/Me"
+	opponentNode = $"Players/Far"
+	
+	# register players nodes' player variables (DIRECTLY link to server, no pipelining variables anymore :)
+	for i in Lobby.players:
+		if i == Lobby.myID:
+			myNode.player = Lobby.players[i]
+		else:
+			opponentNode.player = Lobby.players[i]
 	
 	# Connect signals to the server
 	Lobby.newCard.connect(changeCardSelectionCard) # server gives the player a new card to look at during the card selection phase
 	Lobby.gameStateChange.connect(changeGameState) # Game Stage Change
 	# card drawing phase is over
+	Lobby.inventorySizeIncreased.connect(gainCardAnimation) # card has been given to a player
 	# phase change in the game
-	# someone's energy has changed
-	# someone's health has changed
+	Lobby.playerEnergyUpdated.connect(myNode.changeEnergy) # someone's energy has changed
+	Lobby.playerHealthUpdated.connect(myNode.changeHealth) # someone's health has changed
 	
 	# If you are the host, calling this will enable the card selection phase to start
 	Lobby.preGame()
 	
 	# start the card drawing phase
-	# Make everything that is not card selection related somewhat transparent
+	# TODO Make everything that is not card selection related somewhat transparent
 	# inventories
 	# grid
 	# HUD
@@ -39,9 +60,6 @@ func _ready() -> void:
 	$"Card Draw/1".clicked.connect(cardWish)
 	$"Card Draw/2".clicked.connect(cardWish)
 	$"Card Draw/3".clicked.connect(cardWish)
-	
-	# Tell server you have drawn the cards from the deck
-	pass # Replace with function body.
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -109,6 +127,24 @@ func changeGameState(oldState: String, oldPlayer: int) -> void:
 	
 	# TODO Reflect GUI change of the turn button
 	pass
+
+func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
+		
+	
+	if (id == Lobby.myID): # if I am gaining the card,
+		# determine how many cards are coming in
+		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
+			$"Inventories/My Inventory".addCards(card)
+		else: # if it's a single card,
+			$"Inventories/My Inventory".addCard(card)
+		
+	# TODO more than one player expandability
+	else: # the opponent is gaining a card:
+		# determine how many cards are coming in
+		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
+			$"Inventories/Far Inventory".addCards(card)
+		else: # if it's a single card,
+			$"Inventories/Far Inventory".addCard(card)
 
 
 func _on_button_button_up() -> void:

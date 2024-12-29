@@ -5,7 +5,9 @@ class_name Player
 @export var name: String = "???"
 ## Non-optional variable containing the player ID. The default value (no explicitly assigned playerID) is -1.
 @export var id : int = -1
-@export var energy: int = 0
+## Each player starts with 1 energy.
+@export var energy: int = 1
+@export var health: int = 20
 #@export var statusEffects: 
 @export var isTheirTurn: bool = false
 ## The inventory is an array containing the cards in their inventory.
