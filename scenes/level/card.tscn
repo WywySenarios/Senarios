@@ -1,0 +1,80 @@
+[gd_scene load_steps=6 format=3 uid="uid://w1e7gyi1mlqa"]
+
+[ext_resource type="Script" path="res://scripts/level/card.gd" id="1_shkh5"]
+[ext_resource type="Material" uid="uid://bubg2n6lo8u66" path="res://components/card/particles/placement.tres" id="2_y56cs"]
+[ext_resource type="Texture2D" uid="uid://dgby1nges8l16" path="res://assets/cards/backside.png" id="3_kj426"]
+[ext_resource type="Texture2D" uid="uid://u585bwkcv34m" path="res://assets/cards/frontside.png" id="4_tt3v3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rdpcm"]
+size = Vector2(170, 238)
+
+[node name="Card" type="Node2D"]
+script = ExtResource("1_shkh5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_left = 65.0
+offset_top = -140.0
+offset_right = 105.0
+offset_bottom = -100.0
+
+[node name="Particles" type="Node2D" parent="."]
+
+[node name="placement" type="GPUParticles2D" parent="Particles"]
+scale = Vector2(2.5, 2.5)
+emitting = false
+amount = 100
+process_material = ExtResource("2_y56cs")
+one_shot = true
+preprocess = 0.5
+speed_scale = 1.5
+local_coords = true
+
+[node name="Backside" type="Sprite2D" parent="."]
+scale = Vector2(0.225, 0.225)
+texture = ExtResource("3_kj426")
+
+[node name="Frontside" type="Sprite2D" parent="."]
+position = Vector2(3.8147e-06, 0)
+scale = Vector2(0.225, 0.225)
+texture = ExtResource("4_tt3v3")
+
+[node name="card_head" type="Sprite2D" parent="."]
+
+[node name="card" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="card"]
+shape = SubResource("RectangleShape2D_rdpcm")
+
+[node name="HP Container" type="CenterContainer" parent="."]
+offset_left = -60.0
+offset_top = 120.0
+offset_right = -41.0
+offset_bottom = 170.0
+
+[node name="HP" type="Label" parent="HP Container"]
+layout_mode = 2
+text = "10"
+
+[node name="Attack Container" type="CenterContainer" parent="."]
+offset_left = 40.0
+offset_top = 120.0
+offset_right = 59.0
+offset_bottom = 170.0
+
+[node name="Attack" type="Label" parent="Attack Container"]
+layout_mode = 2
+text = "10"
+
+[node name="Label" type="Label" parent="."]
+offset_left = -75.0
+offset_top = 164.0
+offset_right = -35.0
+offset_bottom = 187.0
+text = "HP"
+
+[node name="Label2" type="Label" parent="."]
+offset_left = 31.0
+offset_top = 163.0
+offset_right = 71.0
+offset_bottom = 186.0
+text = "Attack"

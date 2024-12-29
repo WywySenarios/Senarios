@@ -1,14 +1,10 @@
 extends Control
 
 # Exported variables:
-## @experimental
+## Height in tiles
 @export var height: int = 5
-## @experimental
+## Width in tiles
 @export var width: int = 5
-## Tile width in pixels
-@export var tileLength: int = 150
-## Margin between gridtiles in pixels.
-@export var margin: int = 15
 
 const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 
@@ -17,6 +13,7 @@ const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 ## Stores references to all gridtiles
 ## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
 ## Indexes should correspond EXACTLY with activeCards
+## The grid tile's name is exactly the same as the index in this array, except separated by a comma (e.g. 0,0 or 3,1)
 var gridTiles: Array[Array] = []
 
 ## Stores references to all cards currently on the field.
@@ -24,77 +21,48 @@ var gridTiles: Array[Array] = []
 ## Indexes should correspond EXACTLY with gridTiles
 var activeCards: Array[Array] = []
 ## Stores the reference to the gridtile
-var activeGridTile: Node2D
+var activeGridTile: Control
 ## Utility RNG to be used for visuals, where being truly random does not matter at all.
 var utilityRNG = RandomNumberGenerator.new()
 
 # Called when the node enters the scene tree for the first time.
 ## Create grid tiles.
 ## Connects grid tile signals & card signals.
-func _ready() -> void:
-	# stores whether or not the [height, width] has an odd number of tiles or not
-	var oddTiles: Array[bool] = [height % 2 == 1, width % 2 == 1]
-	
-	var currentGridTileRow
-	var currentCardRow
-	var currentGridTile
-	var distanceFromCenter = 0 # in # of cards
-	for a in range(height):
-		currentGridTileRow = Array()
-		currentCardRow = Array()
-		for b in range(width):
-			# create grid tile
-			currentGridTile = gridTileScene.instantiate()
-			currentGridTile.set_meta("id", [a,b])
-			# position grid tile correctly:
-			if (oddTiles[1]): # width is odd
-				
-				# Use integer division and add one to find middle.
-				# Counteract index starting at 0 by adding 1 at the end.
-				@warning_ignore("integer_division")
-				distanceFromCenter = b - (width / 2 + 1) + 1
-				
-				# default pos + # of tiles * (gap + tile)
-				currentGridTile.position.x = distanceFromCenter * (margin + tileLength)
-			else: # width is even
-				
-				# subtract 0.5 because no card is at position (0,0). IDK why it works, but it does!
-				# Counteract index starting at 0 by adding 1 at the end.
-				@warning_ignore("integer_division")
-				distanceFromCenter = b - (width / 2) - 0.5 + 1
-				
-				# 0.5 * (gap + tile) + # of tiles * (gap + tile)
-				# 0.5 is baked in to # of tiles due to the 0.5 being subtracted in the "distanceFromCenter" variable. :D
-				@warning_ignore("integer_division")
-				currentGridTile.position.x = distanceFromCenter * (margin + tileLength)
-			if (oddTiles[0]): # height is odd, similar logic to width
-				@warning_ignore("integer_division")
-				distanceFromCenter = a - (height / 2 + 1) + 1
-				
-				@warning_ignore("integer_division")
-				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
-			else: # height is even, similar logic to width
-				@warning_ignore("integer_division")
-				distanceFromCenter = a - (width / 2) - 0.5 + 1
-				
-				currentGridTile.position.y = distanceFromCenter * (margin + tileLength)
-			# allow for signals for mouse_entered & mouse_exited to pass into here, thereby decreasing the number of scripts I have to write.
-			currentGridTile.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(currentGridTile))
-			currentGridTile.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(currentGridTile))
-			# make sure that the grid tile will actually show up and exist
-			add_child(currentGridTile)
-			currentGridTileRow.append(currentGridTile)
-			
-			# when the grid is first made, there are no cards on the grid
-			currentCardRow.append(null)
-		
-		gridTiles.append(currentGridTileRow)
-		activeCards.append(currentCardRow)
-	
-	
-	# Connect signals of every card inside the scene
-	for i in get_parent().get_node("Inventories").get_node("My Inventory").get_children():
-		i.place.connect(_on_card_placement)
+#func _ready() -> void:
+	## stores whether or not the [height, width] has an odd number of tiles or not
+	#
+	#var currentGridTileRow
+	#var currentCardRow
+	#var currentGridTile
+	#
+	## make sure there are enough columns
+	#self.columns = width
+	#
+	#for a in range(height):
+		#currentGridTileRow = Array()
+		#currentCardRow = Array()
+		#for b in range(width):
+			## create grid tile
+			#currentGridTile = gridTileScene.instantiate()
+			#currentGridTile.set_meta("id", [a,b])
+			#currentGridTile.name = str(a) + "," + str(b)
+			## allow for signals for mouse_entered & mouse_exited to pass into here, thereby decreasing the number of scripts I have to write.
+			#currentGridTile.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(currentGridTile))
+			#currentGridTile.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(currentGridTile))
+			## make sure that the grid tile will actually show up and exist
+			#add_child(currentGridTile)
+			#currentGridTileRow.append(currentGridTile)
+			#
+			## when the grid is first made, there are no cards on the grid
+			#currentCardRow.append(null)
+		#
+		#gridTiles.append(currentGridTileRow)
+		#activeCards.append(currentCardRow)
+	#
+	#
+	## Connect signals of every card inside the scene
+	#for i in get_parent().get_node("Inventories").get_node("My Inventory").get_children():
+		#i.place.connect(_on_card_placement)
 
 
  #Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -104,13 +72,13 @@ func _ready() -> void:
 ## Setter for [member activegridTile]
 ## This function is intended for detecting where the player might place the card.
 ## This function should trigger when the mouse enters a grid tile.
-func _on_mouse_entered_gridtile(tile: Node2D) -> void:
+func _on_mouse_entered_gridtile(tile: Control) -> void:
 	activeGridTile = tile
 
 ## Setter for [member activeGridTile]
 ## This function is intended for detecting where the player might not want to place the card.
 ## This function should trigger when the mouse leaves a grid tile.
-func _on_mouse_exit_gridtile(tile: Node2D) -> void:
+func _on_mouse_exit_gridtile(tile: Control) -> void:
 	activeGridTile = null
 
 ## @experimental

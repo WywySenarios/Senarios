@@ -7,3 +7,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_jf0b6")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 2
+color = Color(0.74558, 0.74558, 0.74558, 1)

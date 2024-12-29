@@ -10,8 +10,13 @@ var gameState: Dictionary = {
 	"player": -1
 }
 
+var cardDrawNodes: Array[Node]
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# register child nodes
+	cardDrawNodes = [$"Card Draw Ready Button", $"Card Draw"]
+	
 	# Connect signals to the server
 	Lobby.newCard.connect(changeCardSelectionCard) # server gives the player a new card to look at during the card selection phase
 	Lobby.gameStateChange.connect(changeGameState) # Game Stage Change
@@ -45,7 +50,7 @@ func _process(delta) -> void:
 
 ## Send a request to the server to switch cards
 ## The singular parameter is a draw_card scene.
-func cardWish(cardNode: Node2D) -> void:
+func cardWish(cardNode: Control) -> void:
 	# redundant check for valid input
 	if 0 <= cardNode.index and cardNode.index <= 3:
 		# send a request to the server. Updates will be handled in another function (changeCardSelectionCard)
@@ -85,18 +90,22 @@ func changePlayerHP(finalHP: int, playerID: int) -> void:
 ## Function to be called when the game state changes.
 ## @experimental
 func changeGameState(oldState: String, oldPlayer: int) -> void:
-	if oldState == "Card Draw":
+	if oldState == "Lobby":
+		# Show card draw elements
+		for i in cardDrawNodes:
+			i.show()
+	elif oldState == "Card Draw":
+		
 		# Hide card draw elements
-		# Make the element transparent by setting its CanvasItems Modulate property's alpha channel to 0
-		# Animation time is 0.5s
-		get_tree().create_tween().tween_property($"Card Draw", "modulate", Color($"Card Draw".modulate, 0), 0.5)
-		get_tree().create_tween().tween_property($"Card Draw Ready Button", "modulate", Color($"Card Draw Ready Button".modulate, 0), 0.5)
-		
-		# also hide the elements after the animation
-		get_tree().create_tween().tween_callback($"Card Draw".queue_free).set_delay(0.5)
-		get_tree().create_tween().tween_callback($"Card Draw Ready Button".queue_free).set_delay(0.5)
-		
-		pass# TODO make the gameplay elements less transparent.
+		for i in cardDrawNodes:
+			# Make the element transparent by setting its CanvasItems Modulate property's alpha channel to 0
+			# Animation time is 0.5s
+			get_tree().create_tween().tween_property(i, "modulate", Color(i.modulate, 0), 0.5)
+			
+			# also hide the elements after the animation
+			get_tree().create_tween().tween_callback(i.queue_free).set_delay(0.5)
+			
+			# TODO make the gameplay elements less transparent.
 	
 	# TODO Reflect GUI change of the turn button
 	pass
