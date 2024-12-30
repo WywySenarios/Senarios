@@ -37,12 +37,15 @@ func _ready() -> void:
 		else:
 			opponentNode.player = Lobby.players[i]
 	
+	# register this node with the server
+	Lobby.levelNode = self
+	
 	# Connect signals to the server
 	Lobby.newCard.connect(changeCardSelectionCard) # server gives the player a new card to look at during the card selection phase
 	Lobby.gameStateChange.connect(changeGameState) # Game Stage Change
 	# card drawing phase is over
 	Lobby.inventorySizeIncreased.connect(gainCardAnimation) # card has been given to a player
-	# phase change in the game
+	Lobby.gameStateChange.connect(onGameStateChange) # phase change in the game
 	Lobby.playerEnergyUpdated.connect(myNode.changeEnergy) # someone's energy has changed
 	Lobby.playerHealthUpdated.connect(myNode.changeHealth) # someone's health has changed
 	
@@ -150,3 +153,16 @@ func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
 func _on_button_button_up() -> void:
 	# Tell the server that I am done selecting my starting hand
 	Lobby.changeGameState.rpc_id(1, Lobby.myID)
+
+func onGameStateChange(oldGameStateName: String, oldGameStatePlayer: int) -> void:
+	if Lobby.gameState["player"] == Lobby.players[Lobby.myID].id and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
+		$"Player HUD/Next Turn Button".disabled = false
+	else:
+		$"Player HUD/Next Turn Button".disabled = true
+
+
+func requestTurnChange() -> void:
+	# redundant check for valid input
+	if Lobby.gameState["player"] == Lobby.myID and Lobby.gameState["name"] == "Turn":
+		print("Turn is going to change!")
+		Lobby.changeGameState.rpc_id(1, Lobby.myID)

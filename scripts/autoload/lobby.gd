@@ -10,6 +10,7 @@ const DEFAULT_PLAYER_NAME: String = "???"
 #region Generic Server Signals
 signal player_connected(peer_id)
 signal player_disconnected(peer_id)
+@warning_ignore("unused_signal")
 signal server_disconnected
 signal server_up ## emitted when there is an attempt to initialize the server. Returns a string relevant to the outcome of the server initiailization attempt.
 signal player_info_changed(peer_id)
@@ -37,6 +38,10 @@ var levelScene: Control
 ## @experimental
 var players: Dictionary = {}
 
+## Key: player ID
+## Value: player number
+var playerNumbers: Dictionary = {}
+
 ## This contains all the ids of the players who have successfully chosen their starting hand.
 var playersReady = []
 
@@ -57,6 +62,11 @@ var gameState: Dictionary = {
 var playerIDs: Array[int]
 
 var gameRound: int = 0
+
+@warning_ignore("unused_parameter")
+var gridTiles: Array[Array]
+var activeCards: Array[Array]
+## TODO do not hardcode
 #endregion
 
 #region Card Draw Phase Signals
@@ -89,6 +99,8 @@ signal playerEnergyUpdated(id: int, oldEnergy: int)
 signal gameStateChange(oldGameStateName: String, oldGameStatePlayer: int)
 #endregion
 
+
+#region Basic Server Functions
 func _ready():
 	multiplayer.peer_connected.connect(peerConnected)
 	multiplayer.peer_disconnected.connect(peerDisconnected)
@@ -119,6 +131,9 @@ func connectedToServer():
 	
 func connectionFailed():
 	print("Couldn't connect.")
+#endregion
+
+var levelNode
 
 #region Lobby & Pre-game Functions
 ## ONLY to be called when a player is joining through the lobby
@@ -132,6 +147,7 @@ func sendPlayerName(playerName: String, id: int, signalToFire: Signal = player_i
 		players[id].id = id
 		#players[id].inventory = []
 		players[id].playerNumber = len(players)
+		playerNumbers[id] = players[id].playerNumber
 		# TODO change from hard coded deck
 		players[id].deck = load("res://data/decks/Default Stickman.tres")
 	
@@ -148,6 +164,7 @@ func sendPlayerName(playerName: String, id: int, signalToFire: Signal = player_i
 @rpc("any_peer")
 func sendFullPlayerInformation(player: Player, id, signalToFire: Signal = player_info_changed):
 	players[id] = player
+	playerNumbers[id] = player.playerNumber
 	
 	if id == myID: # if this is my own information,
 		me = players[id]
@@ -214,6 +231,9 @@ func joinGame(playerName: String, serverIP = ""):
 func startGame():
 	# load the correct scene
 	get_tree().change_scene_to_file("res://scenes/level.tscn")
+	
+	# CRITICAL check if syntax changed or something stupid
+	levelNode = get_tree().root.get_child(0)
 
 ## Pre-cardDraw stage functionality
 func preGame():	
@@ -288,32 +308,42 @@ func approvedRerollWish(index: int, card: String):
 
 
 
-
+## CRITICAL vulnerable to the wrong player making requests
 ## Called when the game stage is to change.
 ## Can be called by anyone, but only takes effect if the correct person calls it.
 ## Additionally, calling this during the card selection phase marks that the player who called it is ready.
+## @experimental Moving to remove the ID paramter
 @rpc("any_peer", "reliable", "call_local")
 func changeGameState(id: int):
 	if multiplayer.is_server():
 		# if the current state of the game is ...,
-		if gameState.name == "Card Draw":
-			if playersReady.find(id) != -1: # if the player already readied up,
-				return # do NOT do anything.
-			
-			
-			# give the player their cards
-			for a in playerCardSelectionIndexes[id]:
-				drawCard(id, a) # players draw the respective index of their deck
+		match gameState:
+			"Card Draw":
+				if playersReady.find(id) != -1: # if the player already readied up,
+					return # do NOT do anything.
 				
-			# shuffle deck because the players have already peaked at the first couple of cards
-			shuffleDeck(id)
-			
-			# mark the player as ready for the next round
-			playersReady.append(id)
-			
-			# see if everyone is ready or not
-			if len(playersReady) == players.size():
-				approveGameStateChange.rpc("Turn", 1)
+				
+				# give the player their cards
+				for a in playerCardSelectionIndexes[id]:
+					drawCard(id, a) # players draw the respective index of their deck
+					
+				# shuffle deck because the players have already peaked at the first couple of cards
+				shuffleDeck(id)
+				
+				# mark the player as ready for the next round
+				playersReady.append(id)
+				
+				# see if everyone is ready or not
+				if len(playersReady) == players.size():
+					approveGameStateChange.rpc("Turn", 1)
+			"Turn":
+				# if the right player requests a game state change,
+				if playerNumbers[id] == gameState["player"]:
+					match playerNumbers[id]:
+						1:
+							approveGameStateChange("Turn", 2)
+						2:
+							serverNextRound()
 	# TODO decide if this is the right client to call
 	# TODO implement turn code
 	# TODO call this after lobby creation
@@ -322,12 +352,12 @@ func changeGameState(id: int):
 ## Called when the server wants the game state to change.
 ## To get the game state to change, call "changeGameState" on the server using rpc_id
 @rpc("authority", "reliable", "call_local")
-func approveGameStateChange(name: String, player: int):
+func approveGameStateChange(gameStateName: String, player: int):
 	var oldName: String = gameState.name
 	var oldPlayer: int = gameState.player
-	print("Game state change approved: ", name, ", ", player)
+	print("Game state change approved: ", gameStateName, ", ", player)
 	gameState = {
-		"name": name,
+		"name": gameStateName,
 		"player": player
 	}
 	
@@ -353,7 +383,9 @@ func serverNextRound():
 		var oldInventorySize = players[id].inventory.size()
 		
 		signalsToFire.append(emit_signal.bind("inventoryUpdated", id, oldInventorySize)) # prepare to broadcast change
-		
+	
+	# go back to player 1's turn
+	approveGameStateChange("Turn", 1)
 
 ## Broadcasts new information relevant to the next round.
 # TODO fix up RPC parameters
@@ -453,3 +485,49 @@ func handOverCards(target:int, _cards: Array[String]):
 				handOverCards.rpc_id(i, target, _cards)
 			else: # censor the card contents
 				handOverCards.rpc_id(i, target, censoredCards)
+
+## Called on the server when the user wishes to place down a card.
+## Array indexes should be as they appear on the client
+## The id should be the ID of the player who is placing the card down
+## there are a couple requirements for card placement.
+## First of all, it needs to be the respective player's turn.
+## Second of all, the card needs to be in their inventory.
+## Third of all, the location should be free.
+# TODO fix up which player is on which side (e.g. one player should always access the grid using 5 - index
+@rpc("any_peer", "call_local", "reliable")
+func requestCardPlacement(id: int, _card: String, location: Array[int]):
+	# only the server should handle this request.
+	if not multiplayer.is_server():
+		return
+	
+	# TODO make it so that the client can't crash the server by giving an invalid card ID
+	var card: Card = load("res://resources/" + _card + ".tres")
+	
+	# card placement requirements
+	var playerNumber = players[id].id
+	var inventoryIndex = players[id].inventory.find(card)
+	var originalLocation: Array[int] = location
+	# WARNING hard-coded
+	if id != 1:
+		location = [4 - location[0], location[1]]
+	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]])
+	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null:
+		for i in players: # tell everyone that there is a card placement and to start playing animations
+			if i == 1:
+				approveCardPlacement.rpc_id(i, id, _card, location)
+			else:
+				if location[0] == originalLocation[0]: # if the host placed the card,
+					approveCardPlacement.rpc_id(i, id, _card, [4 - location[0], location[1]] as Array[int])
+				else:
+					approveCardPlacement.rpc_id(i, id, _card, location)
+	else: # reject.
+		disapproveCardPlacement.rpc_id(id, id, _card, originalLocation)
+
+@rpc("authority", "call_local", "reliable")
+func disapproveCardPlacement(id: int, _card: String, location: Array[int]):
+	if id == myID:
+		levelNode.get_node("Grid").disapprovedCardPlacementRequest()
+
+@rpc("authority", "call_local", "reliable")
+func approveCardPlacement(id: int, _card: String, location: Array[int]):
+	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)

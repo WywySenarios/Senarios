@@ -78,7 +78,6 @@ func addCard(_card: Card):
 	
 func addCards(_cards: Array[Card]):
 	var card
-	var cards: Array[Container] = []
 	for i in _cards:
 		# create a new card node to represent this card
 		card = cardScene.instantiate()

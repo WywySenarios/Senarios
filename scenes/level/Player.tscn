@@ -9,14 +9,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_v7dx7")
 
 [node name="Energy" type="Label" parent="."]
 layout_mode = 0
-offset_left = 995.0
-offset_top = 395.0
-offset_right = 1035.0
-offset_bottom = 418.0
+offset_left = 907.0
+offset_top = 406.0
+offset_right = 978.0
+offset_bottom = 429.0
+text = "Energy: 1"
 
 [node name="Health" type="Label" parent="."]
 layout_mode = 0
@@ -24,3 +26,4 @@ offset_left = 909.0
 offset_top = 506.0
 offset_right = 949.0
 offset_bottom = 529.0
+text = "Health: 20"

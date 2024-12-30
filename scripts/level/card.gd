@@ -1,23 +1,23 @@
 extends Container
 
+
+#region Card Information & State Variables
 @export var card : Card
 ## Does the card start faceup when the scene is first drawn?
 @export var faceup : bool
 
+## Is this card currently in the player's deck (i.e. it is not on the screen)
+var in_deck: bool = false
+
+var isInInventory: bool = false
+#endregion
+
 ## This signal triggers when there is an attempt to place this card.
 signal place(card_ref)
 
-## Is this card currently in the player's deck (i.e. it is not on the screen)
-var in_deck: bool = false
-## May this card currently be dragged by the user?
-## Intended to be actively changed during runtime.
-var draggable: bool = false
-
+#region Temporary/Runtime Variables
 # Create a dummy tween so that nobody will complain about nulls
 var dragTween: Tween = create_tween()
-
-
-var isInInventory: bool = false
 
 ## @deprecated
 var is_inside_droppable: bool = false
@@ -27,10 +27,13 @@ var body_ref: Node
 
 var offset: Vector2
 var initialPos: Vector2
+#endregion
 
+#region Child Nodes
 var backsideImageRect
 var frontsideImageRect
 var card_headImageRect
+#endregion
 
 ## @experimental
 func _ready() -> void:

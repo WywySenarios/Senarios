@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="Entity" load_steps=3 format=3 uid="uid://dj6fq4kxuiqw3"]
+[gd_resource type="Resource" script_class="Entity" load_steps=5 format=3 uid="uid://dj6fq4kxuiqw3"]
 
-[ext_resource type="Texture2D" uid="uid://dd5lmht6icq4s" path="res://assets/cards/card_images/cardImage-Gen-4-Stickman.png" id="1_518ne"]
+[ext_resource type="Texture2D" uid="uid://ctm24mfwo6rou" path="res://assets/cards/card_images/cardImage-Gen-4-Stickman.png" id="1_518ne"]
 [ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_i8f4h"]
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_im243"]
+[ext_resource type="Script" path="res://scripts/card/move.gd" id="3_vnq5e"]
 
 [resource]
 script = ExtResource("1_i8f4h")
@@ -10,9 +12,10 @@ hpr = 0.0
 shield = 0.0
 aggressive = true
 currentMove = 0
-moves = Array[Resource("res://scripts/card/move.gd")]([])
-abilities = Array[Resource("res://scripts/card/ability.gd")]([])
+moves = Array[ExtResource("3_vnq5e")]([])
+abilities = Array[ExtResource("1_im243")]([])
 name = "Stickman"
+cardID = "entity_Gen-4-Stickman"
 cardType = ""
 generation = 4
 cost = 1.0

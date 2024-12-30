@@ -19,11 +19,20 @@ var gridTiles: Array[Array] = []
 ## Stores references to all cards currently on the field.
 ## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
 ## Indexes should correspond EXACTLY with gridTiles
-var activeCards: Array[Array] = []
+@export var activeCards: Array[Array] = []
 ## Stores the reference to the gridtile
-var activeGridTile: Control
+@export var activeGridTile: Control
 ## Utility RNG to be used for visuals, where being truly random does not matter at all.
 var utilityRNG = RandomNumberGenerator.new()
+
+## Stores the information regarding the last card placement request made to the server.
+## Is null if there is no pending request.
+## Please block making more requests until the last one has been fulfilled
+## "card": Card node (Control)
+## "gridTile": Grid Tile (Control)
+var lastCardPlacementRequest = null
+
+const cardScene: PackedScene = preload("res://scenes/level/card.tscn")
 
 func _ready():
 	# TODO don't hardcode this
@@ -36,12 +45,19 @@ func _ready():
 	var metadata
 	for i in get_children():
 		metadata = i.name.split(',')
+		if len(metadata) != 2 or not i is Control: # ONLY deal with properly named Control nodes
+			continue
+		
 		metadata = [int(metadata[0]), int(metadata[1])]
-		i.set_meta("id", metadata)
+		i.set_meta("id", metadata.duplicate())
 		i.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(i))
 		i.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(i))
 		
 		gridTiles[metadata[0]][metadata[1]] = i
+	
+	# link to server
+	Lobby.gridTiles = gridTiles
+	Lobby.activeCards = activeCards
 
 #region Old Grid Creation Code
 # Called when the node enters the scene tree for the first time.
@@ -108,28 +124,66 @@ func _on_mouse_exit_gridtile(tile: Control) -> void:
 func _on_card_placement(card: Control) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
-	if (activeGridTile != null):
+	# you also have to place the card in the right spot
+	if (activeGridTile != null) and (activeGridTile.get_meta("id")[0] == 2 or activeGridTile.get_meta("id")[0] == 3):
+		lastCardPlacementRequest = {
+			"card": card,
+			"gridTile": activeGridTile
+		}
+		
+		var activeGridTileMetadata = activeGridTile.get_meta("id")
+		var data: Array[int] = [int(activeGridTileMetadata[0]), int(activeGridTileMetadata[1])]
+		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.cardID, data)
+
+## Called when the server approves a card placement request
+func approvedCardPlacementRequest(id: int, _card: String, location: Array[int]) -> void:
+	print("Approved!")
+	var card: Control
+	var gridTile: Control
+	if id == Lobby.myID: # if this card is mine,
+		card = lastCardPlacementRequest.card
+		gridTile = lastCardPlacementRequest.gridTile
+		
 		# randomize the animation time. It just adds a tiny bit more flavor!
 		var animationTime = utilityRNG.randf_range(0.15, 0.35)
 		
 		#var cardPositionTween =
-		get_tree().create_tween().tween_property(card, "global_position", activeGridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
+		get_tree().create_tween().tween_property(card, "global_position", gridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
 		# rotate one revolution (1 rev = 2 pi)
 		#get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime) # .set_ease(Tween.EASE_OUT)
 		get_tree().create_tween().tween_property(card, "scale", Vector2(0.1, 0.1), animationTime)
 		# Register card in the correct position
-		# note: metadata "id" has y, x coordinates. They are the exact indexes of the array, so that's nice.
-		var index = activeGridTile.get_meta("id")
+		# note: a grid tile's "id" metadata has y, x coordinates. They are the exact indexes of the array, so that's nice.
+		var index = gridTile.get_meta("id")
 		activeCards[index[0]][index[1]] = card
 		card.set_meta("locationIndex", [index[0], index[1]])
 		
 		# remove the card from the inventory
 		card.get_parent().removeCard(card)
 		# add to the grid tile
-		activeGridTile.add_child(card)
+		gridTile.add_child(card)
+	else: # TODO this is not my card,
+		# create the opponent's card
+		card = cardScene.instantiate()
+		card.card = load("res://resources/" + _card + ".tres")
+		# CRITICAL check variable change order
+		card.faceup = true
 		
-		# TODO activate particles for placing the card down once it's on the board (card class handles this)
-		#cardPositionTween.finished.connect(card._on_card_placement)
-	else: # tell the card to go back to where it came from >:(
-		#print("Go back where you came from!")
-		get_tree().create_tween().tween_property(card, "global_position", card.initialPos, 0.2).set_ease(Tween.EASE_OUT)
+		gridTile = gridTiles[location[0]][location[1]]
+		
+		# TODO animations
+		
+		# remove a card from the opponent's inventory (their inventory size decreased)
+		var cardToRemove = Global.emptyCardScene
+		cardToRemove.isInInventory = true
+		# WARNING hard-coded
+		get_parent().get_node("Inventories/Far Inventory").removeCard(cardToRemove)
+		
+		activeCards[location[0]][location[1]] = card
+		gridTile.add_child(card)
+
+## Called when the server disapproves your card placement request
+func disapprovedCardPlacementRequest():
+	print("Disapproved")
+	lastCardPlacementRequest = null
+	# TODO

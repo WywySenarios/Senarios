@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="Entity" load_steps=3 format=3 uid="uid://x0vgeyriq0q5"]
+[gd_resource type="Resource" script_class="Entity" load_steps=5 format=3 uid="uid://x0vgeyriq0q5"]
 
-[ext_resource type="Texture2D" uid="uid://d1bveqsykc3bk" path="res://assets/cards/card_images/cardImage-Shock-Trooper.png" id="1_ix26v"]
+[ext_resource type="Texture2D" uid="uid://48mmm7bhxku2" path="res://assets/cards/card_images/cardImage-Shock-Trooper.png" id="1_ix26v"]
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_twx31"]
 [ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_w1aep"]
+[ext_resource type="Script" path="res://scripts/card/move.gd" id="3_acqvg"]
 
 [resource]
 script = ExtResource("1_w1aep")
@@ -10,9 +12,10 @@ hpr = 0.0
 shield = 0.0
 aggressive = true
 currentMove = 0
-moves = Array[Resource("res://scripts/card/move.gd")]([])
-abilities = Array[Resource("res://scripts/card/ability.gd")]([])
+moves = Array[ExtResource("3_acqvg")]([])
+abilities = Array[ExtResource("1_twx31")]([])
 name = "Shock Trooper"
+cardID = "entity_Shock-Trooper"
 cardType = ""
 generation = 4
 cost = 0.0

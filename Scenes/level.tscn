@@ -209,4 +209,5 @@ mouse_filter = 2
 
 [node name="Card Holder" type="Node" parent="."]
 
+[connection signal="button_up" from="Player HUD/Next Turn Button" to="." method="requestTurnChange"]
 [connection signal="button_up" from="Card Draw Ready Button" to="." method="_on_button_button_up"]
