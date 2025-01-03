@@ -181,6 +181,8 @@ func approvedCardPlacementRequest(id: int, _card: String, location: Array[int]) 
 		
 		activeCards[location[0]][location[1]] = card
 		gridTile.add_child(card)
+	
+	card.card.changeHealth.connect(Lobby.changeCardHealth)
 
 ## Called when the server disapproves your card placement request
 func disapprovedCardPlacementRequest():

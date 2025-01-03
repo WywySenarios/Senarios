@@ -15,6 +15,11 @@ var cardDrawNodes: Array[Node]
 var myNode
 var opponentNode
 
+## Runtime variable intended to store where the player is focusing
+var focusedNode: Node
+## Runtime variable intended to store which node the player has selected
+var lastClickedNode: Node
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# register this scene with the server autoload script
@@ -46,8 +51,8 @@ func _ready() -> void:
 	# card drawing phase is over
 	Lobby.inventorySizeIncreased.connect(gainCardAnimation) # card has been given to a player
 	Lobby.gameStateChange.connect(onGameStateChange) # phase change in the game
-	Lobby.playerEnergyUpdated.connect(myNode.changeEnergy) # someone's energy has changed
-	Lobby.playerHealthUpdated.connect(myNode.changeHealth) # someone's health has changed
+	Lobby.playerEnergyUpdated.connect(changeEnergy) # someone's energy has changed
+	Lobby.playerHealthUpdated.connect(changeHealth) # someone's health has changed
 	
 	# If you are the host, calling this will enable the card selection phase to start
 	Lobby.preGame()
@@ -96,18 +101,49 @@ func changeCardSelectionCard(index: int, newCard: String) -> void:
 
 ## Does not guarentee that the correct energy change has been displayed (if the client's current energy reading is wrong).
 ## However, this function updates the GUI so that the correct energy count is displayed for the respective player.
-## The playerID should be the ID recognized by the server (e.g. the host is 1)
-func gainEnergy(finalEnergy: int, playerID: int) -> void:
-	# TODO change the text of the GUI element
-	pass
+## The targets array should contain the ID recognized by the server (e.g. the host is 1)
+## WARNING hard-coded
+func changeEnergy(targets: Array[int], oldEnergies: Array[int], wasSet: bool) -> void:
+	for i in range(len(targets)):
+		match targets[i]:
+			Lobby.myID:
+				myNode.changeEnergy(targets[i], oldEnergies[i])
+			_:
+				opponentNode.changeEnergy(targets[i], oldEnergies[i])
 
 ## Does not guarentee that the correct HP change has been displayed.
 ## However, this function updates the GUI so that the correct HP count is displayed for the respective player.
-## The playerID should be the ID recognized by the server (e.g. the host is 1)
-func changePlayerHP(finalHP: int, playerID: int) -> void:
-	# TODO change the text of the respective GUI element
-	pass
+## The targets array should contain the ID recognized by the server (e.g. the host is 1)
+## WARNING hard-coded
+func changeHealth(targets:  Array[int], oldHealths: Array[int], wasSet: bool) -> void:
+	for i in range(len(targets)):
+		match targets[i]:
+			Lobby.myID:
+				myNode.changeEnergy(targets[i], oldHealths[i])
+			_:
+				opponentNode.changeEnergy(targets[i], oldHealths[i])
 
+func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
+		
+	
+	if (id == Lobby.myID): # if I am gaining the card,
+		# determine how many cards are coming in
+		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
+			$"Inventories/My Inventory".addCards(card)
+		else: # if it's a single card,
+			$"Inventories/My Inventory".addCard(card)
+		
+	# TODO more than one player expandability
+	else: # the opponent is gaining a card:
+		# determine how many cards are coming in
+		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
+			$"Inventories/Far Inventory".addCards(card)
+		else: # if it's a single card,
+			$"Inventories/Far Inventory".addCard(card)
+
+
+
+#region Game State Functions
 ## Function to be called when the game state changes.
 ## @experimental
 func changeGameState(oldState: String, oldPlayer: int) -> void:
@@ -131,31 +167,13 @@ func changeGameState(oldState: String, oldPlayer: int) -> void:
 	# TODO Reflect GUI change of the turn button
 	pass
 
-func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
-		
-	
-	if (id == Lobby.myID): # if I am gaining the card,
-		# determine how many cards are coming in
-		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
-			$"Inventories/My Inventory".addCards(card)
-		else: # if it's a single card,
-			$"Inventories/My Inventory".addCard(card)
-		
-	# TODO more than one player expandability
-	else: # the opponent is gaining a card:
-		# determine how many cards are coming in
-		if typeof(card) == TYPE_ARRAY: # if it's an array and therefore multiple cards are coming in,
-			$"Inventories/Far Inventory".addCards(card)
-		else: # if it's a single card,
-			$"Inventories/Far Inventory".addCard(card)
-
-
 func _on_button_button_up() -> void:
 	# Tell the server that I am done selecting my starting hand
 	Lobby.changeGameState.rpc_id(1, Lobby.myID)
 
 func onGameStateChange(oldGameStateName: String, oldGameStatePlayer: int) -> void:
-	if Lobby.gameState["player"] == Lobby.players[Lobby.myID].id and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
+	print(Lobby.playerNumbers[Lobby.myID])
+	if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
 		$"Player HUD/Next Turn Button".disabled = false
 	else:
 		$"Player HUD/Next Turn Button".disabled = true
@@ -166,3 +184,4 @@ func requestTurnChange() -> void:
 	if Lobby.gameState["player"] == Lobby.myID and Lobby.gameState["name"] == "Turn":
 		print("Turn is going to change!")
 		Lobby.changeGameState.rpc_id(1, Lobby.myID)
+#endregion

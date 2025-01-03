@@ -99,38 +99,47 @@ func _on_card_placement() -> void:
 func onMouseEntered() -> void:
 	if isInInventory:
 		Draggables.selectCard(self)
+	
+	Global.focuseCard(self)
 
 
 func onMouseExited() -> void:
 	if isInInventory:
 		Draggables.deselectCard(self)
+	
+	Global.unfocusCard(self)
 
 
 func onGUIInput(event: InputEvent) -> void:
 	# a valid input is ONLY:
 	# a click or click release,
 	# left click type,
-	# if the drag tween is not running (i.e. the card is not returning to its original position or being placed right now)
-	# if the card is available to drag
-	# the card is in the inventory (eligible to be dragged)
-	# the card is yours
-	if event is InputEventMouseButton and event.button_index == 1 and not dragTween.is_running() and Draggables.cardSelected == self and isInInventory and get_parent().isMyInventory:
-		if event.button_mask == 1 and not Draggables.is_dragging: # press down
-			initialPos = global_position
-			Draggables.startDragging()
-			offset = get_global_mouse_position() - global_position
-		else: # release
-			place.emit(self)
-			
-			dragTween = get_tree().create_tween()
-			if is_inside_droppable:
-				dragTween.tween_property(self, "position", body_ref.position, 0.2).set_ease(Tween.EASE_OUT)
+	if event is InputEventMouseButton and event.button_index == 1:
+		# a valid drag for card placement is,
+		# if the drag tween is not running (i.e. the card is not returning to its original position or being placed right now)
+		# if the card is available to drag
+		# the card is in the inventory (eligible to be dragged)
+		# the card is yours
+		if not dragTween.is_running() and Draggables.cardSelected == self and isInInventory and get_parent().isMyInventory:
+			if event.button_mask == 1 and not Draggables.is_dragging: # press down
+				initialPos = global_position
+				Draggables.startDragging()
+				offset = get_global_mouse_position() - global_position
+			else: # release
+				place.emit(self)
 				
-			else:
-				dragTween.tween_property(self, "global_position", initialPos, 0.2).set_ease(Tween.EASE_OUT)
+				dragTween = get_tree().create_tween()
+				if is_inside_droppable:
+					dragTween.tween_property(self, "position", body_ref.position, 0.2).set_ease(Tween.EASE_OUT)
+					
+				else:
+					dragTween.tween_property(self, "global_position", initialPos, 0.2).set_ease(Tween.EASE_OUT)
+				
+				Draggables.stopDragging()
+				dragTween.tween_callback($AnimationPlayer.play.bind("Deselect"))
+		# a valid focus event is: (always at this stage :D)
+		else:
 			
-			Draggables.stopDragging()
-			dragTween.tween_callback($AnimationPlayer.play.bind("Deselect"))
 
 func onMouseEnteredInventory() -> void:
 	if isInInventory:

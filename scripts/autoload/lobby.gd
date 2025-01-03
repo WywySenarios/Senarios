@@ -59,6 +59,8 @@ var gameState: Dictionary = {
 }
 
 ## An array that contains EVERY player's ID.
+## Currently does NOT work whatsoever. Consider using players.keys() instead.
+## @deprecated
 var playerIDs: Array[int]
 
 var gameRound: int = 0
@@ -94,9 +96,19 @@ signal abilityUpdated(index: Array[int], ability: String)
 ## will be split into seperate signals later.
 ## @deprecated
 signal cardStatUpdated(index: Array[int], statName: String, newMagnitude: int)
-signal playerHealthUpdated(id: int, oldHealth: int)
-signal playerEnergyUpdated(id: int, oldEnergy: int)
+## Targets: Array conotianing the player IDs.
+## Params should be well-ordered.
+## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
+signal playerHealthUpdated(targets: Array[int], oldHealth: Array[int], wasSet: bool)
+## Targets: Array containing the player IDs.
+## Params should be well-ordered.
+## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
+signal playerEnergyUpdated(targets: Array[int], oldEnergy: Array[int], wasSet: bool)
 signal gameStateChange(oldGameStateName: String, oldGameStatePlayer: int)
+
+#region Card Status Updates
+signal cardHealthUpdated(location: Array[int], oldHealth)
+#endregion
 #endregion
 
 
@@ -317,7 +329,7 @@ func approvedRerollWish(index: int, card: String):
 func changeGameState(id: int):
 	if multiplayer.is_server():
 		# if the current state of the game is ...,
-		match gameState:
+		match gameState["name"]:
 			"Card Draw":
 				if playersReady.find(id) != -1: # if the player already readied up,
 					return # do NOT do anything.
@@ -341,7 +353,7 @@ func changeGameState(id: int):
 				if playerNumbers[id] == gameState["player"]:
 					match playerNumbers[id]:
 						1:
-							approveGameStateChange("Turn", 2)
+							approveGameStateChange.rpc("Turn", 2)
 						2:
 							serverNextRound()
 	# TODO decide if this is the right client to call
@@ -368,51 +380,111 @@ func serverNextRound():
 	gameRound += 1
 	var signalsToFire = []
 
-	for id in players:
-		# Players start out with one energy on turn one. On turn two, they get two energy, and this continues until the 10th turn, as the starting energy caps out at ten (without any specials, generators, etc.)
-		# the equals sign is there because the round number updates before the energyRate updates.
-		if gameRound <= 10:
-			players[id].energyRate += 1
-		
-		# give players more energy
-		var oldEnergy = players[id].energy
-		players[id].energy = players[id].energyRate
-		signalsToFire.append(emit_signal.bind("playerEnergyUpdated", id, oldEnergy)) # prepare to broadcast change
-
-		# give players more cards
-		var oldInventorySize = players[id].inventory.size()
-		
-		signalsToFire.append(emit_signal.bind("inventoryUpdated", id, oldInventorySize)) # prepare to broadcast change
+	var allIDs = players.keys()
+	# give energy
+	if gameRound < 10:
+		setEnergy.rpc(allIDs, gameRound)
+	else:
+		setEnergy.rpc(allIDs, 10)
+	
+	# draw cards
 	
 	# go back to player 1's turn
-	approveGameStateChange("Turn", 1)
+	approveGameStateChange.rpc("Turn", 1)
 
-## Broadcasts new information relevant to the next round.
+
+#region Change Player Stats
+## Called by the server when someone's energy is set to a specific value (NOT added)
+## Separate calls will separate the animations.
+@rpc("authority", "call_local", "reliable")
+func setEnergy(targetIDs: Array[int], energyCount: int):
+	var oldEnergies: Array[int] = []
+	for i in targetIDs:
+		oldEnergies.append(players[i].energy)
+		players[i].energy = energyCount
+		
+	playerEnergyUpdated.emit(targetIDs, oldEnergies, true)
+
+## Called by the server when someone's health changes.
+## To be sparingly used. Resort to attacks and abilities instead.
+## Separate calls will separate the animations.
+@rpc("authority", "call_local", "reliable")
+func setHealth(targetIDs: Array[int], healthCount: int):
+	var oldHealths: Array[int] = []
+	for i in targetIDs:
+		oldHealths.append(players[i].health)
+		players[i].health = healthCount
+		
+	playerHealthUpdated.emit(targetIDs, oldHealths, true)
+
+
+## Called by the server when someone's energy changes.
+## Separate calls will separate the animations.
+## In this case, gaining 1 energy and then another energy is different from gaining 2 energy straight away due to animations being played and abilities being triggered, etc.
+@rpc("authority", "call_local", "reliable")
+func giveEnergy(targetIDs: Array[int], energyCount: int):
+	var oldEnergies: Array[int] = []
+	for i in targetIDs:
+		oldEnergies.append(players[i].energy)
+		players[i].energy += energyCount
+		
+	playerEnergyUpdated.emit(targetIDs, oldEnergies, false)
+
+## Called by the server when someone's health changes.
+## To be sparingly used. Resort to attacks and abilities instead.
+## Separate calls will separate the animations.
+## In this case, gaining 1 energy and then another energy is different from gaining 2 energy straight away due to animations being played and abilities being triggered, etc.
+@rpc("authority", "call_local", "reliable")
+func giveHealth(targetIDs: Array[int], healthCount: int):
+	var oldHealths: Array[int] = []
+	for i in targetIDs:
+		oldHealths.append(players[i].health)
+		players[i].health += healthCount
+		
+	playerHealthUpdated.emit(targetIDs, oldHealths, false)
+#endregion
+
+## The move parameter will change to a Dictionary in the future.
+## CRITICAL vulnerable to exploits
+## Locations as seen by the player
 # TODO fix up RPC parameters
-@rpc("authority", "reliable")
-func nextRound(newRoundNumber: int, newPlayerData: Dictionary, signalsToFire: Array):
-	
+@rpc("any_peer", "call_local", "reliable")
+func requestMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
+	if multiplayer.is_server():
+		var actualAttackerLocation: Array[int] = attackerLocation
+		var actualTargetLocation: Array[int] = targetLocation
+		# WARNING hard coded
+		if id != 1:
+			actualAttackerLocation[0] = 3 - attackerLocation[0]
+			actualTargetLocation[0] = 3 - targetLocation[0]
+		
+		# if the right person has called the function,
+		# if the attacker is a valid card (belonging AND existence),
+		# if the target is a valid card (existence),
+		# WARNING hard coded
+		if playerNumbers[id] == gameState.player and (attackerLocation[0] == 0 or attackerLocation[0] == 1) and activeCards[attackerLocation[0]][attackerLocation[1]] != null and activeCards[targetLocation[0]][targetLocation[1]] != null:
+			# process move logic
+			for i in players:
+				if id == i: # if this is the player that sent it (the locations are accurate from their perspective),
+					approveMove.rpc_id(i, id, _move, attackerLocation, targetLocation)
+				else: # if this is the server and the opponent sent in the request,
+					approveMove.rpc_id(i, id, _move, actualAttackerLocation, actualTargetLocation)
+		# TODO process move logic
+		# TODO ensure updates are pushed
 
+## The move parameter will change to a Dictionary in the future.
+## @experimental
+@rpc("authority", "call_local", "reliable")
+func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
+		if _move == "AttackDirect":
+			# TODO complete with dynamic strengths, etc.
+			var move = AttackDirect.new()
+			move.base_damage = 1
+			
+			move.execute(activeCards[targetLocation[0]][targetLocation[1]], activeCards[attackerLocation[0]][attackerLocation[1]])
 
-
-	# TODO give players more energy
-	# TODO give players more cards
-	# TODO ensure that the clients have been notified
-	pass
-
-# TODO fix up RPC parameters
-@rpc
-func placeCard():
-	# TODO ensure the right person has placed the card at the right time
-	# TODO ensure that the clients have been notified
-	pass
-
-# TODO fix up RPC parameters
-func move():
-	# TODO ensure the right person has called the function at the right time
-	# TODO process move logic
-	# TODO ensure updates are pushed
-	pass
+func changeCardHealth(target: Card, oldCardHealth: int):
+	print("The card's health changed gained by ", target.health - oldCardHealth)
 
 ## called when a client requests to change the active move of a card active on the field.
 # TODO fix up RPC parameters
@@ -421,10 +493,12 @@ func changeActiveMove():
 	# TODO ensure the right person has called the function at the right time
 	# TODO ensure updates are pushed
 	pass
-	
+
+#region Card Gain
 ## The function that handles a player drawing a card from their deck.
 @rpc("authority", "call_local", "reliable")
-func drawCard(target: int, deckIndex: int):
+func drawCard(target: int, deckIndex: int = -1):
+	# CRITICAL TODO pop cards as they come out
 	handOverCard(target, players[target].deck.content[deckIndex])
 
 ## The function that gets called when someone is to receive a card (not necessarily a draw card function)
@@ -453,13 +527,12 @@ func handOverCard(target: int, _card: String):
 			else: # censor the card contents
 				handOverCard.rpc_id(i, target, "empty")
 
-
 ## The function that gets called when someone is to receive multiple cards at once (not necessarily a draw card function)
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
 ## This function has a special behaviour when the player's inventory is already full TODO @experimental
 ## The target parameter refers to the player (ID) who has received the card.
 @rpc("authority", "call_local", "reliable")
-func handOverCards(target:int, _cards: Array[String]):
+func handOverCards(target: int, _cards: Array[String]):
 	var card: Card
 	var oldInventorySize: int = len(players[target].inventory)
 	var censoredCards = []
@@ -485,7 +558,9 @@ func handOverCards(target:int, _cards: Array[String]):
 				handOverCards.rpc_id(i, target, _cards)
 			else: # censor the card contents
 				handOverCards.rpc_id(i, target, censoredCards)
+#endregion
 
+#region Card Placement
 ## Called on the server when the user wishes to place down a card.
 ## Array indexes should be as they appear on the client
 ## The id should be the ID of the player who is placing the card down
@@ -504,14 +579,18 @@ func requestCardPlacement(id: int, _card: String, location: Array[int]):
 	var card: Card = load("res://resources/" + _card + ".tres")
 	
 	# card placement requirements
-	var playerNumber = players[id].id
+	var playerNumber = playerNumbers[id]
 	var inventoryIndex = players[id].inventory.find(card)
 	var originalLocation: Array[int] = location
 	# WARNING hard-coded
 	if id != 1:
 		location = [4 - location[0], location[1]]
-	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]])
-	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null:
+	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]] == null)
+	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null and players[id].energy >= card.cost:
+		# deduct energy
+		giveEnergy.rpc([id] as Array[int], -card.cost)
+		
+		# TODO optimize if statements
 		for i in players: # tell everyone that there is a card placement and to start playing animations
 			if i == 1:
 				approveCardPlacement.rpc_id(i, id, _card, location)
@@ -531,3 +610,4 @@ func disapproveCardPlacement(id: int, _card: String, location: Array[int]):
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: String, location: Array[int]):
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
+#endregion

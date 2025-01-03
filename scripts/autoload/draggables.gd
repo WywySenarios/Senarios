@@ -3,7 +3,7 @@ extends Node2D
 ## Is the player currently dragging any object?
 var is_dragging = false
 
-var cardSelected
+var cardSelected = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

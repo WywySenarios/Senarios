@@ -14,11 +14,20 @@ var statusEffects # status effects that currently apply to this card
 @export var moves : Array[Move]
 @export var abilities : Array[Ability]
 
+signal changeHealth(entity: Entity, oldHealth: int)
+signal died(entity: Entity)
+
 func hurt(damage):
+	var oldHealth = health
 	damage /= defenseMultiplier
+	# if the below if statement is not true, the damage is 0, either to start or because of damage reduction.
 	if (damage > defenseBonus):
 		health -= damage - defenseBonus
-	# if the above if statement is not true, the damage is 0, either to start or because of damage reduction.
+	
+	changeHealth.emit(self, oldHealth)
+	
+	if health <= 0:
+		died.emit(self)
 
 func execute(target):
 	moves[currentMove].execute(target, self)
