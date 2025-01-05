@@ -31,3 +31,51 @@ func hurt(damage):
 
 func execute(target):
 	moves[currentMove].execute(target, self)
+
+# TODO (add status effects and remove status effects) functions
+
+
+## TODO test this function
+## Transform this card's data into a Dictionary.
+## Does not modify the card's contents.
+## @experimental
+func serialize() -> Dictionary:
+	var output: Dictionary = {
+		"subtype": "Entity",
+		"content": {
+			"health": health,
+			"hpr": hpr,
+			"shield": shield,
+			"attackMultiplier": attackMultiplier,
+			"attackBonus": attackBonus,
+			"defenseMultiplier": defenseMultiplier,
+			"defenseBonus": defenseBonus,
+			"aggressive": aggressive,
+			# CRITICAL this will not work as intended because this attribute depends on a custom class
+			"statusEffects": statusEffects,
+			"currentMove": currentMove,
+			# CRITICAL this will not work as intended because this attribute depends on a custom class
+			"moves": moves.duplicate(),
+			# CRITICAL this will not work as intended because this attribute depends on a custom class
+			"abilites": abilities.duplicate(),
+		},
+	}
+	
+	# do NOT override the above data
+	output.merge(super.serialize(), false)
+	return output
+
+## TODO testing, signals
+## Deserialize the dictionary and inject its data into the card this was called on.
+## Calls updates only when there is a change in the values or references
+## @experimental
+func deserialize(_object: Dictionary) -> void:
+	# ensure validity (this could be removed given that the child class usually ensures validity as well)
+	if not _object.has("type") or _object.type != "Move" or _object.has("content"):
+		return
+	
+	# TODO implement overriding data
+	#if _object.content.has("base_damage") and _object.content.base_damage != base_damage:
+		#base_damage = _object.content.base_damage
+		## TODO emit signal
+	

@@ -138,8 +138,7 @@ func onGUIInput(event: InputEvent) -> void:
 				Draggables.stopDragging()
 				dragTween.tween_callback($AnimationPlayer.play.bind("Deselect"))
 		# a valid focus event is: (always at this stage :D)
-		else:
-			
+		#else:
 
 func onMouseEnteredInventory() -> void:
 	if isInInventory:

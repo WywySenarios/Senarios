@@ -266,7 +266,52 @@ func preGame():
 		approveGameStateChange.rpc("Card Draw", -1)
 #endregion
 
+#region Deserialization
+## This serializes certain objects into a dictionary.
+## This is inteended to be used in combination with RPCs.
+## Currently supports:
+## * []
+## @experimental
+func serialize(object: Variant) -> Dictionary:
+	print("Failed to serialize object (Lobby autoload script). Returning empty dictionary...")
+	return {}
 
+## This deserializes certain objects from a dictionary.
+## This is intended to be used in combination with RPCs.
+## Currently supports:
+## * []
+## @experimental
+func deserialize(_object: Dictionary) -> Variant:
+	if not _object.has("type"): # if the dictionary is missing a valid type
+		return null
+	
+	var object: Variant
+	if _object.has("subtype") and _object.subtype != "":
+		# object has a subtype
+		match _object.subtype:
+			"Entity":
+				object = Entity.new()
+			"AttackDirect":
+				object = AttackDirect.new()
+			_:
+				return null
+	else:
+		match _object.type:
+			"Card":
+				object = Card.new()
+			"Player":
+				object = Player.new()
+			"Deck":
+				object = Deck.new()
+			_:
+				return null
+	
+	# request the object to serialize itself.
+	object.serialize(_object)
+	return object
+#endregion
+
+#region Game Logic & Update Pushes
 ## Reshuffles the deck of the player with the ID specified.
 ## ID refers to the player whose deck is being shuffled.
 ## This function notifies the player that their deck has been shuffled (not implemented yet)
@@ -610,4 +655,5 @@ func disapproveCardPlacement(id: int, _card: String, location: Array[int]):
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: String, location: Array[int]):
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
+#endregion
 #endregion
