@@ -111,9 +111,18 @@ signal cardHealthUpdated(location: Array[int], oldHealth)
 #endregion
 #endregion
 
+#region Game Constants (useful constants to know/have)
+var emptyCard = load("res://resources/empty.tres")
+var emptyCardSerialized = emptyCard.serialize()
+#endregion
+
 
 #region Basic Server Functions
 func _ready():
+	# make some data constant
+	emptyCardSerialized.make_read_only()
+	
+	# connect multiplayer signals
 	multiplayer.peer_connected.connect(peerConnected)
 	multiplayer.peer_disconnected.connect(peerDisconnected)
 	multiplayer.connected_to_server.connect(connectedToServer)
@@ -162,6 +171,8 @@ func sendPlayerName(playerName: String, id: int, signalToFire: Signal = player_i
 		playerNumbers[id] = players[id].playerNumber
 		# TODO change from hard coded deck
 		players[id].deck = load("res://data/decks/Default Stickman.tres")
+		players[id].deck.ready()
+		players[id].ready()
 	
 	if id == myID: # if this is my own information,
 		me = players[id]
@@ -489,7 +500,7 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 	playerHealthUpdated.emit(targetIDs, oldHealths, false)
 #endregion
 
-## The move parameter will change to a Dictionary in the future.
+## The move parameter will change to a Dictionary in the future. TODO
 ## CRITICAL vulnerable to exploits
 ## Locations as seen by the player
 # TODO fix up RPC parameters
@@ -517,7 +528,7 @@ func requestMove(id: int, _move: String, attackerLocation: Array[int], targetLoc
 		# TODO process move logic
 		# TODO ensure updates are pushed
 
-## The move parameter will change to a Dictionary in the future.
+## The move parameter will change to a Dictionary in the future. TODO
 ## @experimental
 @rpc("authority", "call_local", "reliable")
 func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
@@ -528,6 +539,7 @@ func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLoc
 			
 			move.execute(activeCards[targetLocation[0]][targetLocation[1]], activeCards[attackerLocation[0]][attackerLocation[1]])
 
+# what the hell is this? WARNING
 func changeCardHealth(target: Card, oldCardHealth: int):
 	print("The card's health changed gained by ", target.health - oldCardHealth)
 
@@ -544,15 +556,15 @@ func changeActiveMove():
 @rpc("authority", "call_local", "reliable")
 func drawCard(target: int, deckIndex: int = -1):
 	# CRITICAL TODO pop cards as they come out
-	handOverCard(target, players[target].deck.content[deckIndex])
+	handOverCard(target, players[target].deck.cardContents[deckIndex].serialize())
 
 ## The function that gets called when someone is to receive a card (not necessarily a draw card function)
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
 ## This function has a special behaviour when the player's inventory is already full TODO @experimental
 ## The target parameter refers to the player (ID) who has received the card.
 @rpc("authority", "call_local", "reliable")
-func handOverCard(target: int, _card: String):
-	var card: Card = load("res://resources/" + _card + ".tres")
+func handOverCard(target: int, _card: Dictionary):
+	var card: Card = Card.new(_card)
 	var oldInventorySize: int = len(players[target].inventory)
 	
 	# store the card in the right player
@@ -570,24 +582,25 @@ func handOverCard(target: int, _card: String):
 			elif i == target: # tell the recipient about the contents of the actual card
 				handOverCard.rpc_id(i, target, _card)
 			else: # censor the card contents
-				handOverCard.rpc_id(i, target, "empty")
+				handOverCard.rpc_id(i, target, emptyCardSerialized)
 
 ## The function that gets called when someone is to receive multiple cards at once (not necessarily a draw card function)
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
 ## This function has a special behaviour when the player's inventory is already full TODO @experimental
 ## The target parameter refers to the player (ID) who has received the card.
 @rpc("authority", "call_local", "reliable")
-func handOverCards(target: int, _cards: Array[String]):
+func handOverCards(target: int, _cards: Array[Dictionary]):
 	var card: Card
 	var oldInventorySize: int = len(players[target].inventory)
 	var censoredCards = []
 	
 	for i in _cards:
-		card = load("res://resources/" + i + ".tres")
-		censoredCards.append("empty")
+		card = Card.new(i)
+		
+		censoredCards.append(emptyCardSerialized)
 		
 		# store the card in the right player
-		players[target].inventory.append(card)
+		players[target].inventory.append(emptyCard)
 	
 	# notify other scenes that a player's inventory has updated
 	inventorySizeIncreased.emit(target, oldInventorySize, _cards)
@@ -613,19 +626,20 @@ func handOverCards(target: int, _cards: Array[String]):
 ## First of all, it needs to be the respective player's turn.
 ## Second of all, the card needs to be in their inventory.
 ## Third of all, the location should be free.
+# TODO integrate serialization
 # TODO fix up which player is on which side (e.g. one player should always access the grid using 5 - index
 @rpc("any_peer", "call_local", "reliable")
-func requestCardPlacement(id: int, _card: String, location: Array[int]):
+func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	# only the server should handle this request.
 	if not multiplayer.is_server():
 		return
 	
 	# TODO make it so that the client can't crash the server by giving an invalid card ID
-	var card: Card = load("res://resources/" + _card + ".tres")
+	var card: Card = Card.new(_card)
 	
 	# card placement requirements
 	var playerNumber = playerNumbers[id]
-	var inventoryIndex = players[id].inventory.find(card)
+	var inventoryIndex = players[id].serializedInventory().find(_card)
 	var originalLocation: Array[int] = location
 	# WARNING hard-coded
 	if id != 1:
@@ -647,13 +661,15 @@ func requestCardPlacement(id: int, _card: String, location: Array[int]):
 	else: # reject.
 		disapproveCardPlacement.rpc_id(id, id, _card, originalLocation)
 
+# TODO fix serialization
 @rpc("authority", "call_local", "reliable")
-func disapproveCardPlacement(id: int, _card: String, location: Array[int]):
+func disapproveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	if id == myID:
 		levelNode.get_node("Grid").disapprovedCardPlacementRequest()
 
+# TODO fix serialization
 @rpc("authority", "call_local", "reliable")
-func approveCardPlacement(id: int, _card: String, location: Array[int]):
+func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
 #endregion
 #endregion

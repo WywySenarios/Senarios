@@ -5,10 +5,18 @@ class_name Deck
 const initialLength = 40
 
 @export var content: Array[String] = []
+var cardContents: Array[Card] = []
 
-func _ready() -> void:
+func ready() -> void:
 	# Warn about invalid decks
 	if len(content) != 40: push_warning("The following deck does not have 40 cards: ", self)
+	
+	# initialize cards as well
+	for i in content:
+		cardContents.append(load("res://resources/" + i + ".tres"))
 
 func shuffle() -> void:
 	content.shuffle()
+
+#func addCard() -> void:
+	#pass

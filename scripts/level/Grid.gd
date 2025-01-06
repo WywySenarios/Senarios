@@ -133,10 +133,10 @@ func _on_card_placement(card: Control) -> void:
 		
 		var activeGridTileMetadata = activeGridTile.get_meta("id")
 		var data: Array[int] = [int(activeGridTileMetadata[0]), int(activeGridTileMetadata[1])]
-		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.cardID, data)
+		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.serialize(), data)
 
 ## Called when the server approves a card placement request
-func approvedCardPlacementRequest(id: int, _card: String, location: Array[int]) -> void:
+func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[int]) -> void:
 	print("Approved!")
 	var card: Control
 	var gridTile: Control
@@ -165,7 +165,8 @@ func approvedCardPlacementRequest(id: int, _card: String, location: Array[int]) 
 	else: # TODO this is not my card,
 		# create the opponent's card
 		card = cardScene.instantiate()
-		card.card = load("res://resources/" + _card + ".tres")
+		print(_card)
+		card.card = Global.createCard(_card)
 		# CRITICAL check variable change order
 		card.faceup = true
 		
@@ -181,8 +182,6 @@ func approvedCardPlacementRequest(id: int, _card: String, location: Array[int]) 
 		
 		activeCards[location[0]][location[1]] = card
 		gridTile.add_child(card)
-	
-	card.card.changeHealth.connect(Lobby.changeCardHealth)
 
 ## Called when the server disapproves your card placement request
 func disapprovedCardPlacementRequest():

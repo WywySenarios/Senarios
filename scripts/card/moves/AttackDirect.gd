@@ -19,7 +19,9 @@ func serialize() -> Dictionary:
 	}
 	
 	# do NOT override the above data
-	output.merge(super.serialize(), false)
+	var superClassSerializaiton = super.serialize()
+	output.merge(superClassSerializaiton, false)
+	output.content.merge(superClassSerializaiton.content, false)
 	return output
 
 ## TODO testing, signals
@@ -28,10 +30,12 @@ func serialize() -> Dictionary:
 ## @experimental
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
-	if not _object.has("type") or _object.type != "Move" or _object.has("content"):
+	if not _object.has("type") or _object.type != "Move" or not _object.has("content"):
 		return
 	
 	if _object.content.has("base_damage") and _object.content.base_damage != base_damage:
 		base_damage = _object.content.base_damage
 		# TODO emit signal
+	
+	super.deserialize(_object)
 	

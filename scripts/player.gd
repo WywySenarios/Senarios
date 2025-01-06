@@ -24,9 +24,16 @@ var inventoryLength
 @export var deck: Deck
 var deckLength: int
 
-func _ready():
+func ready():
 	if deck != null:
-		deckLength = len(deck)
+		deckLength = len(deck.content)
 	
 	if inventory != null:
 		inventoryLength = len(inventory)
+
+func serializedInventory():
+	var output: Array[Dictionary] = []
+	for i in inventory:
+		output.append(i.serialize())
+	
+	return output

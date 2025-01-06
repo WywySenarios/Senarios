@@ -13,6 +13,12 @@ class_name Card
 @export var type : Array[String]
 @export var image : CompressedTexture2D
 
+func _init(arg: Variant = null):
+	match typeof(arg):
+		TYPE_DICTIONARY:
+			deserialize(arg)
+
+#region Serialization
 ## TODO test this function
 ## Transform this card's data into a Dictionary.
 ## Does not modify the card's contents.
@@ -37,7 +43,7 @@ func serialize() -> Dictionary:
 ## @experimental
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity
-	if not _object.has("type") or _object.type != "Card" or _object.has("content"):
+	if not _object.has("type") or _object.type != "Card" or not _object.has("content"):
 		return
 	
 	if _object.content.has("name") and _object.content.name != name:
@@ -47,6 +53,9 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("cardID") and _object.content.cardID != cardID:
 		cardID = _object.content.cardID
 		# TODO emit signal
+		
+		# add image
+		image = load("res://assets/cards/card_images/cardImage-" + cardID + ".png")
 	
 	if _object.content.has("cardType") and _object.content.cardType != cardType:
 		cardType = _object.content.cardType
@@ -63,3 +72,4 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("type") and _object.content.type != type:
 		type = _object.content.type
 		# TODO emit signal
+#endregion

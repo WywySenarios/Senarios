@@ -30,4 +30,18 @@ func unfocusCard(card: Control):
 		focusedCard = null
 		updatedFocusedCard.emit(focusedCard)
 
-func 
+## Creates a card out of a dictionary of data.
+func createCard(arg: Dictionary) -> Card:
+	# TODO ensure valid input?
+	if not arg.has("subtype"):
+		return null
+	
+	match arg.subtype:
+		"Entity":
+			return Entity.new(arg)
+		"Special":
+			return null
+		"Environment":
+			return null
+		_:
+			return null

@@ -4,6 +4,11 @@ class_name Move extends Resource
 @export var tooltip : String = ""
 @export var quick_tooltip : String = ""
 
+func _init(arg: Variant = null):
+	match typeof(arg):
+		TYPE_DICTIONARY:
+			deserialize(arg)
+
 func execute(target, parent):
 	assert(false, "This is an empty move. Please consider reporting the problem.")
 
@@ -26,7 +31,7 @@ func serialize() -> Dictionary:
 ## Calls updates only when there is a change in the values or references
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
-	if not _object.has("type") or _object.type != "Move" or _object.has("content"):
+	if not _object.has("type") or _object.type != "Move" or not _object.has("content"):
 		return
 	
 	if _object.content.has("tooltip") and _object.content.tooltip != tooltip:
