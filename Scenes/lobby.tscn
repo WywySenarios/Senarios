@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://dfkwf1fja0524"]
 
-[ext_resource type="Script" path="res://scripts/Lobby.gd" id="1_dxodn"]
-[ext_resource type="Texture2D" uid="uid://cgia6o3vr4fbo" path="res://assets/lobby/Icon_Wywy.png" id="2_ccq84"]
-[ext_resource type="Texture2D" uid="uid://db2kfx4g70qeu" path="res://assets/lobby/Icon_Stickman.png" id="3_rgnuj"]
+[ext_resource type="Script" path="res://scripts/Lobby.gd" id="1_sdr5a"]
+[ext_resource type="Texture2D" uid="uid://cgia6o3vr4fbo" path="res://assets/lobby/Icon_Wywy.png" id="2_n8g4i"]
+[ext_resource type="Texture2D" uid="uid://db2kfx4g70qeu" path="res://assets/lobby/Icon_Stickman.png" id="3_5gjyk"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_us7on"]
 font_size = 75
@@ -17,7 +17,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_dxodn")
+script = ExtResource("1_sdr5a")
 
 [node name="Icon_Wywy" type="TextureRect" parent="."]
 layout_mode = 1
@@ -29,7 +29,7 @@ anchor_bottom = 0.6
 offset_bottom = -3.05176e-05
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_ccq84")
+texture = ExtResource("2_n8g4i")
 expand_mode = 1
 
 [node name="Icon_Stickman" type="TextureRect" parent="."]
@@ -42,7 +42,7 @@ anchor_bottom = 0.6
 offset_bottom = -3.05176e-05
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("3_rgnuj")
+texture = ExtResource("3_5gjyk")
 expand_mode = 1
 
 [node name="Host" type="Label" parent="."]

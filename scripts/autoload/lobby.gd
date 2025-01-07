@@ -642,8 +642,9 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	var inventoryIndex = players[id].serializedInventory().find(_card)
 	var originalLocation: Array[int] = location
 	# WARNING hard-coded
+	# CRITICAL TODO ensure player places on their own side of the lane
 	if id != 1:
-		location = [4 - location[0], location[1]]
+		location = [2 - location[0], location[1]]
 	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]] == null)
 	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null and players[id].energy >= card.cost:
 		# deduct energy
@@ -655,7 +656,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 				approveCardPlacement.rpc_id(i, id, _card, location)
 			else:
 				if location[0] == originalLocation[0]: # if the host placed the card,
-					approveCardPlacement.rpc_id(i, id, _card, [4 - location[0], location[1]] as Array[int])
+					approveCardPlacement.rpc_id(i, id, _card, [2 - location[0], location[1]] as Array[int])
 				else:
 					approveCardPlacement.rpc_id(i, id, _card, location)
 	else: # reject.

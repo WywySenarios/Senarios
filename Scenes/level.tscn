@@ -126,36 +126,6 @@ layout_mode = 2
 [node name="1,4" parent="Grid" instance=ExtResource("5_6axwp")]
 layout_mode = 2
 
-[node name="2,0" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="2,1" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="2,2" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="2,3" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="2,4" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="3,0" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="3,1" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="3,2" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="3,3" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
-[node name="3,4" parent="Grid" instance=ExtResource("5_6axwp")]
-layout_mode = 2
-
 [node name="Card Draw Ready Button" type="Button" parent="."]
 visible = false
 layout_mode = 2

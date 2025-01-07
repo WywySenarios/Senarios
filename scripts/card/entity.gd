@@ -65,6 +65,7 @@ func serialize() -> Dictionary:
 	var superClassSerializaiton = super.serialize()
 	output.merge(superClassSerializaiton, false)
 	output.content.merge(superClassSerializaiton.content, false)
+	print_debug(output)
 	return output
 
 ## TODO testing, signals

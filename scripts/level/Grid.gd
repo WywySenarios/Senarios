@@ -2,9 +2,9 @@ extends Control
 
 # Exported variables:
 ## Height in tiles
-@export var height: int = 5
+@export var height: int = 2
 ## Width in tiles
-@export var width: int = 5
+@export var width: int = 2
 
 const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 
@@ -36,10 +36,10 @@ const cardScene: PackedScene = preload("res://scenes/level/card.tscn")
 
 func _ready():
 	# TODO don't hardcode this
-	activeCards.resize(5)
+	activeCards.resize(2)
 	activeCards.fill([null, null, null, null, null])
 	
-	gridTiles.resize(5)
+	gridTiles.resize(2)
 	gridTiles.fill([null, null, null, null, null])
 	
 	var metadata
@@ -125,7 +125,7 @@ func _on_card_placement(card: Control) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	# you also have to place the card in the right spot
-	if (activeGridTile != null) and (activeGridTile.get_meta("id")[0] == 2 or activeGridTile.get_meta("id")[0] == 3):
+	if (activeGridTile != null) and (activeGridTile.get_meta("id")[0] == 1):
 		lastCardPlacementRequest = {
 			"card": card,
 			"gridTile": activeGridTile
@@ -133,6 +133,7 @@ func _on_card_placement(card: Control) -> void:
 		
 		var activeGridTileMetadata = activeGridTile.get_meta("id")
 		var data: Array[int] = [int(activeGridTileMetadata[0]), int(activeGridTileMetadata[1])]
+		print_debug(card.card.serialize())
 		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.serialize(), data)
 
 ## Called when the server approves a card placement request
@@ -165,7 +166,6 @@ func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[in
 	else: # TODO this is not my card,
 		# create the opponent's card
 		card = cardScene.instantiate()
-		print(_card)
 		card.card = Global.createCard(_card)
 		# CRITICAL check variable change order
 		card.faceup = true

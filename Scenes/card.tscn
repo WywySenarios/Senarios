@@ -1,17 +1,19 @@
 [gd_scene load_steps=7 format=3 uid="uid://l6f4hac8biah"]
 
-[ext_resource type="Script" path="res://scripts/deck_maker/deck_maker_card.gd" id="1_20oxe"]
-[ext_resource type="Resource" uid="uid://canjbfh1j51cg" path="res://resources/card_wywy_wywySwordsman.tres" id="2_7fkw8"]
-[ext_resource type="Texture2D" uid="uid://dgby1nges8l16" path="res://assets/cards/backside.png" id="2_g3hx2"]
-[ext_resource type="Texture2D" uid="uid://u585bwkcv34m" path="res://assets/cards/frontside.png" id="3_dbm88"]
-[ext_resource type="Material" uid="uid://bubg2n6lo8u66" path="res://components/card/particles/placement.tres" id="5_b1tuf"]
+[ext_resource type="Script" path="res://scripts/deck_maker/deck_maker_card.gd" id="1_0hxea"]
+[ext_resource type="Material" uid="uid://bubg2n6lo8u66" path="res://components/card/particles/placement.tres" id="2_uogne"]
+[ext_resource type="Texture2D" uid="uid://dgby1nges8l16" path="res://assets/cards/backside.png" id="3_yc2wc"]
+[ext_resource type="Texture2D" uid="uid://u585bwkcv34m" path="res://assets/cards/frontside.png" id="4_pdv0d"]
+
+[sub_resource type="Resource" id="Resource_hp6qx"]
+metadata/__load_path__ = "res://resources/card_wywy_wywySwordsman.tres"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y2pvw"]
 size = Vector2(170, 238)
 
 [node name="card" type="Node2D"]
-script = ExtResource("1_20oxe")
-card = ExtResource("2_7fkw8")
+script = ExtResource("1_0hxea")
+card = SubResource("Resource_hp6qx")
 faceup = true
 
 [node name="Particles" type="Node2D" parent="."]
@@ -20,7 +22,7 @@ faceup = true
 scale = Vector2(2.5, 2.5)
 emitting = false
 amount = 100
-process_material = ExtResource("5_b1tuf")
+process_material = ExtResource("2_uogne")
 one_shot = true
 preprocess = 0.5
 speed_scale = 1.5
@@ -28,12 +30,12 @@ local_coords = true
 
 [node name="Backside" type="Sprite2D" parent="."]
 scale = Vector2(0.225, 0.225)
-texture = ExtResource("2_g3hx2")
+texture = ExtResource("3_yc2wc")
 
 [node name="Frontside" type="Sprite2D" parent="."]
 position = Vector2(3.8147e-06, 0)
 scale = Vector2(0.225, 0.225)
-texture = ExtResource("3_dbm88")
+texture = ExtResource("4_pdv0d")
 
 [node name="card_head" type="Sprite2D" parent="."]
 
