@@ -317,8 +317,8 @@ func deserialize(_object: Dictionary) -> Variant:
 			_:
 				return null
 	
-	# request the object to serialize itself.
-	object.serialize(_object)
+	# request the object to deserialize the data.
+	object.deserialize(_object)
 	return object
 #endregion
 
@@ -564,7 +564,7 @@ func drawCard(target: int, deckIndex: int = -1):
 ## The target parameter refers to the player (ID) who has received the card.
 @rpc("authority", "call_local", "reliable")
 func handOverCard(target: int, _card: Dictionary):
-	var card: Card = Card.new(_card)
+	var card: Card = deserialize(_card)
 	var oldInventorySize: int = len(players[target].inventory)
 	
 	# store the card in the right player
@@ -595,7 +595,7 @@ func handOverCards(target: int, _cards: Array[Dictionary]):
 	var censoredCards = []
 	
 	for i in _cards:
-		card = Card.new(i)
+		card = deserialize(i)
 		
 		censoredCards.append(emptyCardSerialized)
 		
@@ -635,7 +635,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		return
 	
 	# TODO make it so that the client can't crash the server by giving an invalid card ID
-	var card: Card = Card.new(_card)
+	var card: Card = deserialize(_card)
 	
 	# card placement requirements
 	var playerNumber = playerNumbers[id]
