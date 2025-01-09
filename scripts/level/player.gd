@@ -23,13 +23,13 @@ func animationAttack(source: Variant, destination: Variant, deltaStats: Dictiona
 
 ## change energy animation
 func changeEnergy(id: int, oldEnergy: int):
-	if id == Lobby.myID:
+	if Lobby.playerNumbers[id] == player.playerNumber:
 		print("Player: ", self, " gained ", player.energy - oldEnergy, " energy")
 		$Energy.text = "Energy: " + str(player.energy)
 
 ## changeHealth animation
 func changeHealth(id: int, oldHealth: int):
-	if id == Lobby.myID:
+	if Lobby.playerNumbers[id] == player.playerNumber:
 		print("Player ", self, " gained ", player.health - oldHealth, " health")
 		$Health.text = player.health
 #endregion

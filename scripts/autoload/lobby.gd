@@ -296,7 +296,7 @@ func preGame():
 			playerCardSelectionIndexes[i] = [0, 1, 2, 3]
 		
 		# start the card selection game stage
-		approveGameStateChange.rpc("Card Draw", -1)
+		approveGameStateChange.rpc({"name": "Card Draw"})
 #endregion
 
 #region Deserialization
@@ -410,6 +410,8 @@ func changeGameState(id: int):
 	if multiplayer.is_server():
 		# if the current state of the game is ...,
 		match gameState["name"]:
+			"Lobby":
+				approveGameStateChange.rpc({"name": "Card Draw"})
 			"Card Draw":
 				if playersReady.find(id) != -1: # if the player already readied up,
 					return # do NOT do anything.
@@ -448,6 +450,7 @@ func changeGameState(id: int):
 					3:
 						approveGameStateChange.rpc({"name": "Battle", "lane": 4})
 					4:
+						# don't worry---an RPC call to this exact function will be made.
 						serverNextRound()
 					_:
 						print("requestGameStateChange call failed.")
@@ -489,7 +492,7 @@ func serverNextRound():
 	# draw cards
 	
 	# go back to player 1's turn
-	approveGameStateChange.rpc("Turn", 1)
+	approveGameStateChange.rpc({"name": "Turn", "player": 1})
 
 
 #region Change Player Stats
@@ -608,6 +611,7 @@ func battle(lane: int):
 	var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
 	var target = null
 	var nextCard = null
+	var nextItemToExecute: Dictionary = {}
 	# WARNING hard-coded
 	for i in range(0, 2):
 		nextCard = cardsInLane[i]
@@ -630,8 +634,9 @@ func battle(lane: int):
 		else:
 			target = cardsInLane[1 - i]
 		
-		
-		itemsToExecute.append(nextCard.execute(target))
+		nextItemToExecute = nextCard.execute(target)
+		if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
+			itemsToExecute.append(nextItemToExecute)
 	
 	# tell everyone to display animations and update card stats.
 	execute.rpc(itemsToExecute)
@@ -782,10 +787,13 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	# WARNING hard-coded
 	# CRITICAL TODO ensure player places on their own side of the lane
 	if id != 1:
-		location = [2 - location[0], location[1]]
-	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]] == null)
-	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null and players[id].energy >= card.cost:
+		location = [1 - location[0], location[1]]
+	
+	# WARNING hard-coded
+	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]] == null, " Correct Location? ", originalLocation[0] == 1, " Player can afford to play the card? ", players[id].energy >= card.cost)
+	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null and originalLocation[0] == 1 and players[id].energy >= card.cost:
 		# deduct energy
+		# NOTE: removing "as Array[int]" will cause unexpected behaviour. GDScript is interesting.
 		giveEnergy.rpc([id] as Array[int], -card.cost)
 		
 		# TODO optimize if statements
@@ -793,10 +801,10 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 			if i == 1:
 				approveCardPlacement.rpc_id(i, id, _card, location)
 			else:
-				if location[0] == originalLocation[0]: # if the host placed the card,
-					approveCardPlacement.rpc_id(i, id, _card, [2 - location[0], location[1]] as Array[int])
+				if id == 1: # if the host placed the card,
+					approveCardPlacement.rpc_id(i, id, _card, [1 - location[0], location[1]] as Array[int])
 				else:
-					approveCardPlacement.rpc_id(i, id, _card, location)
+					approveCardPlacement.rpc_id(i, id, _card, originalLocation)
 	else: # reject.
 		disapproveCardPlacement.rpc_id(id, id, _card, originalLocation)
 
@@ -808,6 +816,10 @@ func disapproveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 ## Enter an ID of -1 if nobody initally requested for that exact card to be placed.
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
+	# WARNING: hard-coded
+	
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
+	
+	summon.emit(location, deserialize(_card))
 #endregion
 #endregion

@@ -17,18 +17,10 @@ var statusEffects # status effects that currently apply to this card
 signal changeHealth(entity: Entity, oldHealth: int)
 signal died(entity: Entity)
 
-func hurt(damage):
-	var oldHealth = health
-	damage /= defenseMultiplier
-	# if the below if statement is not true, the damage is 0, either to start or because of damage reduction.
-	if (damage > defenseBonus):
-		health -= damage - defenseBonus
-	
-	changeHealth.emit(self, oldHealth)
-	
-	if health <= 0:
-		# do NOT under any circumstances kill this card. That is the server's responsibility.
-		died.emit(self)
+## Input is the stats that are being changed.
+## Do NOT handle animation logic.
+func changeStats(statChange: Dictionary):
+	pass
 
 ## Returns a Dictionary containing all the information that the Card's Move wants to change.
 func execute(target: Variant) -> Dictionary:
@@ -67,7 +59,6 @@ func serialize() -> Dictionary:
 	var superClassSerializaiton = super.serialize()
 	output.merge(superClassSerializaiton, false)
 	output.content.merge(superClassSerializaiton.content, false)
-	print_debug(output)
 	return output
 
 ## TODO testing, signals
@@ -75,11 +66,9 @@ func serialize() -> Dictionary:
 ## Calls updates only when there is a change in the values or references
 ## @experimental
 func deserialize(_object: Dictionary) -> void:
-	print("Yes")
-	
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
 	if not _object.has("type") or _object.type != "Card" or not _object.has("content"):
-		print('nope!')
+		print_debug("An Entity was given an invalid dictionary to deserialize.")
 		return
 	
 	# TODO implement overriding data
@@ -87,5 +76,4 @@ func deserialize(_object: Dictionary) -> void:
 		#base_damage = _object.content.base_damage
 		## TODO emit signal
 	
-	print(_object)
 	super.deserialize(_object)

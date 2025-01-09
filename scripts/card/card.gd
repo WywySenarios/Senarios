@@ -44,6 +44,7 @@ func serialize() -> Dictionary:
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity
 	if not _object.has("type") or _object.type != "Card" or not _object.has("content"):
+		print_debug("A Card was given an invalid dictionary to deserialize.")
 		return
 	
 	if _object.content.has("name") and _object.content.name != name:

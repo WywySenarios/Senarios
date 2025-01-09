@@ -13,7 +13,6 @@ func _ready():
 	Lobby.kill.connect(animationKill)
 	Lobby.ability.connect(animationAbility)
 	# END: Animation signals
-	pass # Replace with function body.
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -21,24 +20,45 @@ func _process(delta):
 	pass
 
 #region Animations
-func animationSummon(target: Array[int], _card: Card):
-	$Card.card = _card
-	$Card.faceup = true # hard override
+# General validity checking strategy:
+# check if this is really this card that is being killed:
+# check if the target is a grid tile's Entity,
+# check if the target's coordinates match up
 
-func animationAttack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool):
-	pass
+func animationSummon(target: Array[int], _card: Card) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		$Card.card = _card
+		$Card.faceup = true # hard override
+		$Card.show()
+		
+		print("A card has just been summoned at ", self.get_meta("id")) # TODO animations
 
-func animationBuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool):
-	pass
+func animationAttack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		print("A card at ", self.get_meta("id"), " has just been attacked!: ", statChange) # TODO animations, display HP change
+		$Card.card.changeStats(statChange)
 
-func animationDebuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool):
-	pass
+func animationBuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		print("The card at ", self.get_meta("id"), " has received a buff!") # TODO animations
+		$Card.card.changeStats(statChange)
 
-func animationKill(target: Variant):
-	# check if this is really this card that is being killed
-	if typeof(target) == TYPE_ARRAY && target = self.get_meta("ID")
-	pass
+func animationDebuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		print("The card at ", self.get_meta("id"), " has received a debuff!") # TODO animations
+		$Card.card.changeStats(statChange)
 
-func animationAbility(target: Variant, ability: Ability):
-	pass
+func animationKill(target: Variant) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		# TODO add an actual animation
+		print("Oh no! The card at ", self.get_meta("id"), " has just perished!") # TODO animations
+		$Card.hide()
+		$Card.card = null
+
+func animationAbility(target: Variant, ability: Ability) -> void:
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+		# TODO add an actual animation
+		print("The card at ", self.get_meta("id"), " has activated their ability!") # TODO animations
+		# TODO trigger ability
+		$Card.hide()
 #endregion

@@ -146,6 +146,9 @@ func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
 #region Game State Functions
 ## Function to be called when the game state changes.
 func changeGameState(oldGameState: Dictionary) -> void:
+	# update the game state
+	gameState = Lobby.gameState
+	
 	match (oldGameState.name):
 		"Lobby":
 			pass

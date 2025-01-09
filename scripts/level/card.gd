@@ -50,7 +50,11 @@ func _ready() -> void:
 		frontsideImageRect.hide()
 		card_headImageRect.hide()
 	
-	card_headImageRect.texture = card.image
+	# display animations and what not related to adding the card
+	# this is a fallback to others not calling addCard (old code did not have addCard, they just set the card attribute)
+	if card != null:
+		addCard(card)
+	
 	
 	# allow card dragging
 	dragTween.pause()
@@ -120,7 +124,9 @@ func onGUIInput(event: InputEvent) -> void:
 		# if the card is available to drag
 		# the card is in the inventory (eligible to be dragged)
 		# the card is yours
-		if not dragTween.is_running() and Draggables.cardSelected == self and isInInventory and get_parent().isMyInventory:
+		# the card is in the scene tree
+		var tree = get_tree()
+		if not dragTween.is_running() and Draggables.cardSelected == self and isInInventory and get_parent().isMyInventory and tree != null:
 			if event.button_mask == 1 and not Draggables.is_dragging: # press down
 				initialPos = global_position
 				Draggables.startDragging()
@@ -128,7 +134,8 @@ func onGUIInput(event: InputEvent) -> void:
 			else: # release
 				place.emit(self)
 				
-				dragTween = get_tree().create_tween()
+				# avoid weird bugs during the frames after the card is placed
+				dragTween = tree.create_tween()
 				if is_inside_droppable:
 					dragTween.tween_property(self, "position", body_ref.position, 0.2).set_ease(Tween.EASE_OUT)
 					
@@ -139,6 +146,26 @@ func onGUIInput(event: InputEvent) -> void:
 				dragTween.tween_callback($AnimationPlayer.play.bind("Deselect"))
 		# a valid focus event is: (always at this stage :D)
 		#else:
+
+
+## Adds a Card object and displays the correct stats relating to that card.
+## Setter for "card" attribute.
+## returns true if the card is valid and has been set.
+## Do not attempt to set the card to null. Use removeCard() function.
+func addCard(_card: Card) -> bool:
+	if _card == null:
+		return false
+	
+	# set the card attribute
+	card = _card
+	
+	# set card image
+	card_headImageRect.texture = card.image
+	
+	# TODO stats
+	if card is Entity:
+		$"Contents/Attack Container/Attack".text = str(card.health)
+	return true
 
 func onMouseEnteredInventory() -> void:
 	if isInInventory:

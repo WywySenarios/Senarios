@@ -114,7 +114,7 @@ func _on_mouse_entered_gridtile(tile: Control) -> void:
 ## This function is intended for detecting where the player might not want to place the card.
 ## This function should trigger when the mouse leaves a grid tile.
 func _on_mouse_exit_gridtile(tile: Control) -> void:
-	if activeGridTile == self:
+	if activeGridTile == tile:
 		activeGridTile = null
 
 ## @experimental
@@ -144,7 +144,9 @@ func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[in
 	var gridTile: Control
 	if id == Lobby.myID: # if this card is mine,
 		card = lastCardPlacementRequest.card
+		
 		gridTile = lastCardPlacementRequest.gridTile
+		# do not add the card because the server must have already emitted a summon signal that would have already trigger that.
 		
 		# randomize the animation time. It just adds a tiny bit more flavor!
 		var animationTime = utilityRNG.randf_range(0.15, 0.35)
@@ -164,12 +166,10 @@ func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[in
 		
 		# remove the card from the inventory
 		card.get_parent().removeCard(card)
-		# add to the grid tile
-		gridTile.add_child(card)
 	else: # TODO this is not my card,
 		# create the opponent's card
 		card = cardScene.instantiate()
-		card.card = Global.createCard(_card)
+		card.card = Lobby.deserialize(_card)
 		# CRITICAL check variable change order
 		card.faceup = true
 		
@@ -179,15 +179,19 @@ func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[in
 		
 		# remove a card from the opponent's inventory (their inventory size decreased)
 		var cardToRemove = Global.emptyCardScene
-		cardToRemove.isInInventory = true
+		cardToRemove.isInInventory = false
 		# WARNING hard-coded
 		get_parent().get_node("Inventories/Far Inventory").removeCard(cardToRemove)
 		
 		activeCards[location[0]][location[1]] = card
-		gridTile.add_child(card)
 
 ## Called when the server disapproves your card placement request
 func disapprovedCardPlacementRequest():
 	print("Disapproved")
 	lastCardPlacementRequest = null
 	# TODO
+
+func destroyCard(target: Variant):
+	# if we are destroying a grid tile's card,
+	if target is Array:
+		activeCards[target[0]][target[1]] = null
