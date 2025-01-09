@@ -27,10 +27,12 @@ func hurt(damage):
 	changeHealth.emit(self, oldHealth)
 	
 	if health <= 0:
+		# do NOT under any circumstances kill this card. That is the server's responsibility.
 		died.emit(self)
 
-func execute(target):
-	moves[currentMove].execute(target, self)
+## Returns a Dictionary containing all the information that the Card's Move wants to change.
+func execute(target: Variant) -> Dictionary:
+	return moves[currentMove].execute(target, self)
 
 # TODO (add status effects and remove status effects) functions
 

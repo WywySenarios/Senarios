@@ -50,7 +50,6 @@ func _ready() -> void:
 	Lobby.gameStateChange.connect(changeGameState) # Game Stage Change
 	# card drawing phase is over
 	Lobby.inventorySizeIncreased.connect(gainCardAnimation) # card has been given to a player
-	Lobby.gameStateChange.connect(onGameStateChange) # phase change in the game
 	Lobby.playerEnergyUpdated.connect(changeEnergy) # someone's energy has changed
 	Lobby.playerHealthUpdated.connect(changeHealth) # someone's health has changed
 	
@@ -99,6 +98,7 @@ func changeCardSelectionCard(index: int, newCard: String) -> void:
 	
 	relevantNode.reassignCard(index, load("res://resources/" +  newCard + ".tres"))
 
+#region Animations
 ## Does not guarentee that the correct energy change has been displayed (if the client's current energy reading is wrong).
 ## However, this function updates the GUI so that the correct energy count is displayed for the respective player.
 ## The targets array should contain the ID recognized by the server (e.g. the host is 1)
@@ -140,29 +140,45 @@ func gainCardAnimation(id: int, oldInventorySize: int, card) -> void:
 			$"Inventories/Far Inventory".addCards(card)
 		else: # if it's a single card,
 			$"Inventories/Far Inventory".addCard(card)
-
+#endregion
 
 
 #region Game State Functions
 ## Function to be called when the game state changes.
-## @experimental
-func changeGameState(oldState: String, oldPlayer: int) -> void:
-	if oldState == "Lobby":
-		# Show card draw elements
-		for i in cardDrawNodes:
-			i.show()
-	elif oldState == "Card Draw":
-		
-		# Hide card draw elements
-		for i in cardDrawNodes:
-			# Make the element transparent by setting its CanvasItems Modulate property's alpha channel to 0
-			# Animation time is 0.5s
-			get_tree().create_tween().tween_property(i, "modulate", Color(i.modulate, 0), 0.5)
-			
-			# also hide the elements after the animation
-			get_tree().create_tween().tween_callback(i.queue_free).set_delay(0.5)
-			
-			# TODO make the gameplay elements less transparent.
+func changeGameState(oldGameState: Dictionary) -> void:
+	match (oldGameState.name):
+		"Lobby":
+			pass
+		"Card Draw":
+			# Hide card draw elements
+			for i in cardDrawNodes:
+				# Make the element transparent by setting its CanvasItems Modulate property's alpha channel to 0
+				# Animation time is 0.5s
+				get_tree().create_tween().tween_property(i, "modulate", Color(i.modulate, 0), 0.5)
+				
+				# also hide the elements after the animation
+				get_tree().create_tween().tween_callback(i.queue_free).set_delay(0.5)
+				
+				# TODO make the gameplay elements less transparent.
+		"Turn":
+			# hide next turn button
+			$"Player HUD/Next Turn Button".disabled = true
+		"Battle":
+			# TODO unhighlight the old lane
+			pass
+	
+	# what do we do with the new (current) game state?
+	match (gameState.name):
+		"Card Draw":
+			# Show card draw elements
+			for i in cardDrawNodes:
+				i.show()
+		"Turn":
+			# show the next turn button if it's your turn
+			if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
+				$"Player HUD/Next Turn Button".disabled = false
+		"Battle":
+			print("Battle!: ", gameState.lane) # TODO make this line unecessary
 	
 	# TODO Reflect GUI change of the turn button
 	pass
@@ -170,13 +186,6 @@ func changeGameState(oldState: String, oldPlayer: int) -> void:
 func _on_button_button_up() -> void:
 	# Tell the server that I am done selecting my starting hand
 	Lobby.changeGameState.rpc_id(1, Lobby.myID)
-
-func onGameStateChange(oldGameStateName: String, oldGameStatePlayer: int) -> void:
-	print(Lobby.playerNumbers[Lobby.myID])
-	if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
-		$"Player HUD/Next Turn Button".disabled = false
-	else:
-		$"Player HUD/Next Turn Button".disabled = true
 
 
 func requestTurnChange() -> void:

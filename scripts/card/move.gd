@@ -9,8 +9,9 @@ func _init(arg: Variant = null):
 		TYPE_DICTIONARY:
 			deserialize(arg)
 
-func execute(target, parent):
-	assert(false, "This is an empty move. Please consider reporting the problem.")
+## Returns a Dictionary containing all the information that this Move wants to change.
+func execute(target: Variant, parent: Card) -> Dictionary:
+	return {}
 
 ## TODO test this function
 ## Transform this card's data into a Dictionary.

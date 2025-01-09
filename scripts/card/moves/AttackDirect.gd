@@ -1,10 +1,23 @@
 class_name AttackDirect extends Move
 
+## The base damage, before additive and multiplicative attack bonuses (and therefore also before additive and multiplicative defensive bonuses)
+## POSITIVITY: A positive integer leads to the target losing health.
 @export var base_damage : int = 0
 
-func execute(target: Card, attacker: Card):
+## Deducts health from the target if the attacker is able to attack.
+func execute(target: Variant, attacker: Card) -> Dictionary:
 	if (attacker.aggressive):
-		target.hurt((base_damage * attacker.attackMultiplier) + attacker.attackBonus)
+		return {
+			"target": target,
+			"cause": attacker.serialize(), # TODO save runtime by passing this in or adding this in in another stage/function
+			"type": "Attack",
+			"directAttack": true,
+			"statChange": {
+				"health": -((base_damage * attacker.attackMultiplier) + attacker.attackBonus),
+			}
+		}
+	else:
+		return {}
 
 ## TODO test this function
 ## Transform this card's data into a Dictionary.

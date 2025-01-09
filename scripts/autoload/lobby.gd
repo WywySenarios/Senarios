@@ -52,6 +52,7 @@ var playerCardSelectionIndexes: Dictionary = {}
 ## {
 ##	name: "Lobby", Card Draw", "Turn"; String
 ##	player: 1 # the respective player. If there is no player related to the game state, this should have a value of -1, NaN, null, etc.; Integer
+##	content: # any additional paramters and content. Variant.
 ## }
 var gameState: Dictionary = {
 	"name": "Lobby",
@@ -104,10 +105,31 @@ signal playerHealthUpdated(targets: Array[int], oldHealth: Array[int], wasSet: b
 ## Params should be well-ordered.
 ## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
 signal playerEnergyUpdated(targets: Array[int], oldEnergy: Array[int], wasSet: bool)
-signal gameStateChange(oldGameStateName: String, oldGameStatePlayer: int)
+signal gameStateChange(oldGameState: Dictionary)
 
 #region Card Status Updates
+## @deprecated
 signal cardHealthUpdated(location: Array[int], oldHealth)
+
+## Called when a card is summoned.
+## NOTE: the Lobby script does not store card data. That is the grid's responsibility.
+signal summon(target: Array[int], _card: Card)
+
+## Called when a card attacks another card.
+## NOTE: the Lobby script does not directly process what happens here.
+signal attack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool)
+
+## NOTE: source can be null. In that case, directly play the buff animation and don't play any attack particle effects.
+signal buff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool)
+signal debuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool)
+
+## Called when a card is to be killed.
+## NOTE: the Lobby script does not store card data. That is the grid's responsibility.
+signal kill(target: Variant)
+
+## Called when an ability is activated.
+## NOTE: the Lobby script does not directly process what happens here.
+signal ability(target: Variant, ability: Ability)
 #endregion
 #endregion
 
@@ -297,8 +319,8 @@ func deserialize(_object: Dictionary) -> Variant:
 		return null
 	
 	var object: Variant
+	# object has a subtype
 	if _object.has("subtype") and _object.subtype != "":
-		# object has a subtype
 		match _object.subtype:
 			"Entity":
 				object = Entity.new()
@@ -314,6 +336,8 @@ func deserialize(_object: Dictionary) -> Variant:
 				object = Player.new()
 			"Deck":
 				object = Deck.new()
+			"Ability":
+				object = Ability.new()
 			_:
 				return null
 	
@@ -403,15 +427,31 @@ func changeGameState(id: int):
 				
 				# see if everyone is ready or not
 				if len(playersReady) == players.size():
-					approveGameStateChange.rpc("Turn", 1)
+					approveGameStateChange.rpc({"name": "Turn", "player": 1})
 			"Turn":
 				# if the right player requests a game state change,
 				if playerNumbers[id] == gameState["player"]:
 					match playerNumbers[id]:
 						1:
-							approveGameStateChange.rpc("Turn", 2)
+							approveGameStateChange.rpc({"name": "Turn", "player": 2})
 						2:
-							serverNextRound()
+							approveGameStateChange.rpc({"name": "Battle", "lane": 0})
+			"Battle":
+				# CRITICAL TODO ensure validity
+				match gameState.lane:
+					0: # lane 1 is done fighting,
+						approveGameStateChange.rpc({"name": "Battle", "lane": 1})
+					1:
+						approveGameStateChange.rpc({"name": "Battle", "lane": 2})
+					2:
+						approveGameStateChange.rpc({"name": "Battle", "lane": 3})
+					3:
+						approveGameStateChange.rpc({"name": "Battle", "lane": 4})
+					4:
+						serverNextRound()
+					_:
+						print("requestGameStateChange call failed.")
+						return
 	# TODO decide if this is the right client to call
 	# TODO implement turn code
 	# TODO call this after lobby creation
@@ -420,16 +460,19 @@ func changeGameState(id: int):
 ## Called when the server wants the game state to change.
 ## To get the game state to change, call "changeGameState" on the server using rpc_id
 @rpc("authority", "reliable", "call_local")
-func approveGameStateChange(gameStateName: String, player: int):
-	var oldName: String = gameState.name
-	var oldPlayer: int = gameState.player
-	print("Game state change approved: ", gameStateName, ", ", player)
-	gameState = {
-		"name": gameStateName,
-		"player": player
-	}
+func approveGameStateChange(newGameState: Dictionary):
+	var oldGameState: Dictionary = gameState
 	
-	gameStateChange.emit(oldName, oldPlayer)
+	print("Game state change approved: ", newGameState)
+	gameState = newGameState
+	
+	gameStateChange.emit(oldGameState)
+	
+	# additional code to run by the server:
+	if multiplayer.is_server():
+		match gameState.name:
+			"Battle":
+				battle(gameState.lane)
 
 ## Called when all players' turns have expired and a new round start. Should ONLY be called by the host.
 func serverNextRound():
@@ -503,6 +546,7 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 ## The move parameter will change to a Dictionary in the future. TODO
 ## CRITICAL vulnerable to exploits
 ## Locations as seen by the player
+## @deprecated
 # TODO fix up RPC parameters
 @rpc("any_peer", "call_local", "reliable")
 func requestMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
@@ -529,7 +573,7 @@ func requestMove(id: int, _move: String, attackerLocation: Array[int], targetLoc
 		# TODO ensure updates are pushed
 
 ## The move parameter will change to a Dictionary in the future. TODO
-## @experimental
+## @deprecated
 @rpc("authority", "call_local", "reliable")
 func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
 		if _move == "AttackDirect":
@@ -539,10 +583,6 @@ func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLoc
 			
 			move.execute(activeCards[targetLocation[0]][targetLocation[1]], activeCards[attackerLocation[0]][attackerLocation[1]])
 
-# what the hell is this? WARNING
-func changeCardHealth(target: Card, oldCardHealth: int):
-	print("The card's health changed gained by ", target.health - oldCardHealth)
-
 ## called when a client requests to change the active move of a card active on the field.
 # TODO fix up RPC parameters
 @rpc
@@ -551,9 +591,107 @@ func changeActiveMove():
 	# TODO ensure updates are pushed
 	pass
 
+#region Inform Client of Attacks and Moves TODO change this name
+# what the hell is this? WARNING
+func changeCardHealth(target: Card, oldCardHealth: int):
+	print("The card's health changed gained by ", target.health - oldCardHealth)
+
+
+#endregion
+
+#region Battle logic
+## lane: The lane variable refers to the array index of the lane (0-4)
+func battle(lane: int):
+	var itemsToExecute: Array[Dictionary] = []
+	
+	# have all (both) cards attack each other at the same time
+	var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
+	var target = null
+	var nextCard = null
+	# WARNING hard-coded
+	for i in range(0, 2):
+		nextCard = cardsInLane[i]
+		
+		# only execute moves on cards that actually exist.
+		if nextCard == null:
+			continue
+		
+		# WARNING hard-coded
+		# cards currently always attack straight. More logic will be needed if they don't.
+		# TODO custom targetting function that can be called by any move or ability
+		if cardsInLane[1 - i] == null: # if there is no card to block the attack,
+			# attack the opposing player.
+			# remember that i = 0 means that a card is related to player 1.
+			# WARNING hard-coded
+			if i == 0: # if the card is player 1's card,
+				target = 2
+			else:
+				target = 1
+		else:
+			target = cardsInLane[1 - i]
+		
+		
+		itemsToExecute.append(nextCard.execute(target))
+	
+	# tell everyone to display animations and update card stats.
+	execute.rpc(itemsToExecute)
+
+# TODO make description useful and informative
+## Called by the server to indicate that stats for Entities and/or Players have changed.
+## All animations are to be called at once.
+## Emits signals for other nodes to do processing and animations. Also does processing when necessary.
+## Valid target dictionary: {
+##	target: grid tile index (e.g. [0, 4]) or player number (e.g. 2).
+##	cause: the location from where this attack originates from. There are four different values this can take:
+##		* Array, representing the grid index
+##		* "Special", representing a special
+##		* Int, representing which Environment it came from
+##		* null, the source is irrelevant
+##		NOTE: the only important information "cause" gives is the location from where the attack animation should begin. (e.g. client knows to tell the 5th lane's environment to play its animation)
+##	type: one of these: "Card Draw", "Summon", "Attack", "Buff", "Debuff", "Kill", "Ability"
+##	directAttack: true/false
+##	statChange: 
+##		# TODO fix this comment here{
+##		Key names should be similar to the parameters of the object being changed.
+##	}
+## }
+## NOTE: the order of the targets array should not matter.
+## The next gameplay functions are to be called once the host has finished playing the animations.
+@rpc("authority", "call_local", "reliable")
+func execute(targets: Array[Dictionary]):
+	# start executing EVERY stat change animation right now
+	for i in targets:
+		# TODO ensure validity
+		# TODO type safety
+		#if not (i.has("target") && i.has("directAttack") && i.has("statChange") && i.has("cause") && i.has("type")):
+			# TODO dispute packet with server
+			#continue
+		
+		match i["type"]:
+			"Card Draw":
+				drawCard(i.target) # the target should be a player.
+			"Summon":
+				summon.emit(i.target, deserialize(i.statChange))
+			"Attack":
+				attack.emit(i.target, i.cause, i.statChange, i.directAttack)
+			"Buff":
+				buff.emit(i.target, i.cause, i.statChange, i.directAttack)
+			"Debuff":
+				debuff.emit(i.target, i.cause, i.statChange, i.directAttack)
+			"Kill":
+				kill.emit(i.target)
+			"Ability":
+				ability.emit(i.target, deserialize(i.statChange))
+			_: # if they didn't give a valid type,
+				continue # ignore this entire request
+#endregion
+
+#@rpc("authority", "call_local", "reliable")
+#func changeEnvironment(newEnvironment: Dictionary, lane: int):
+	#pass
 #region Card Gain
 ## The function that handles a player drawing a card from their deck.
-@rpc("authority", "call_local", "reliable")
+## Only to be called on the server.
 func drawCard(target: int, deckIndex: int = -1):
 	# CRITICAL TODO pop cards as they come out
 	handOverCard(target, players[target].deck.cardContents[deckIndex].serialize())
@@ -662,13 +800,12 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	else: # reject.
 		disapproveCardPlacement.rpc_id(id, id, _card, originalLocation)
 
-# TODO fix serialization
 @rpc("authority", "call_local", "reliable")
 func disapproveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	if id == myID:
 		levelNode.get_node("Grid").disapprovedCardPlacementRequest()
 
-# TODO fix serialization
+## Enter an ID of -1 if nobody initally requested for that exact card to be placed.
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)

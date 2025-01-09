@@ -137,6 +137,7 @@ func _on_card_placement(card: Control) -> void:
 		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.serialize(), data)
 
 ## Called when the server approves a card placement request
+## @experimental
 func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[int]) -> void:
 	print("Approved!")
 	var card: Control
@@ -148,15 +149,17 @@ func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[in
 		# randomize the animation time. It just adds a tiny bit more flavor!
 		var animationTime = utilityRNG.randf_range(0.15, 0.35)
 		
-		#var cardPositionTween =
-		get_tree().create_tween().tween_property(card, "global_position", gridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
+		var cardPositionTween = get_tree().create_tween()
+		cardPositionTween.tween_property(card, "global_position", gridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
 		# rotate one revolution (1 rev = 2 pi)
 		#get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime) # .set_ease(Tween.EASE_OUT)
-		get_tree().create_tween().tween_property(card, "scale", Vector2(0.1, 0.1), animationTime)
+		cardPositionTween.tween_property(card, "scale", Vector2(0, 0), animationTime)
+		cardPositionTween.tween_callback(card.queue_free)
 		# Register card in the correct position
 		# note: a grid tile's "id" metadata has y, x coordinates. They are the exact indexes of the array, so that's nice.
 		var index = gridTile.get_meta("id")
 		activeCards[index[0]][index[1]] = card
+		# WARNING this doesn't seem like useful information anymore
 		card.set_meta("locationIndex", [index[0], index[1]])
 		
 		# remove the card from the inventory
