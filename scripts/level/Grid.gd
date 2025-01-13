@@ -133,7 +133,7 @@ func _on_card_placement(card: Control) -> void:
 		
 		var activeGridTileMetadata = activeGridTile.get_meta("id")
 		var data: Array[int] = [int(activeGridTileMetadata[0]), int(activeGridTileMetadata[1])]
-		print_debug(card.card.serialize())
+		#print_debug(card.card.serialize())
 		Lobby.requestCardPlacement.rpc_id(1, Lobby.myID, card.card.serialize(), data)
 
 ## Called when the server approves a card placement request

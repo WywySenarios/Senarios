@@ -19,6 +19,8 @@ var opponentNode
 var focusedNode: Node
 ## Runtime variable intended to store which node the player has selected
 var lastClickedNode: Node
+## Runtime variable intended to store if an animation should be playing right now.
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -151,7 +153,8 @@ func changeGameState(oldGameState: Dictionary) -> void:
 	
 	match (oldGameState.name):
 		"Lobby":
-			pass
+			# disable next turn button
+			$"Player HUD/Next Turn Button".disabled = true
 		"Card Draw":
 			# Hide card draw elements
 			for i in cardDrawNodes:
@@ -164,7 +167,7 @@ func changeGameState(oldGameState: Dictionary) -> void:
 				
 				# TODO make the gameplay elements less transparent.
 		"Turn":
-			# hide next turn button
+			# disable next turn button
 			$"Player HUD/Next Turn Button".disabled = true
 		"Battle":
 			# TODO unhighlight the old lane
@@ -180,8 +183,9 @@ func changeGameState(oldGameState: Dictionary) -> void:
 			# show the next turn button if it's your turn
 			if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
 				$"Player HUD/Next Turn Button".disabled = false
+				print_debug("Next turn button has been enabled.")
 		"Battle":
-			print("Battle!: ", gameState.lane) # TODO make this line unecessary
+			print("Battle! Lane: ", gameState.lane) # TODO make this line unecessary
 	
 	# TODO Reflect GUI change of the turn button
 	pass
@@ -193,7 +197,7 @@ func _on_button_button_up() -> void:
 
 func requestTurnChange() -> void:
 	# redundant check for valid input
-	if Lobby.gameState["player"] == Lobby.myID and Lobby.gameState["name"] == "Turn":
-		print("Turn is going to change!")
+	if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn":
+		print_debug("Requesting turn change...")
 		Lobby.changeGameState.rpc_id(1, Lobby.myID)
 #endregion

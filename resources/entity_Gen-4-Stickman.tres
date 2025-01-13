@@ -15,9 +15,9 @@ quick_tooltip = ""
 
 [resource]
 script = ExtResource("1_i8f4h")
-health = 1.0
-hpr = 0.0
-shield = 0.0
+health = 1
+hpr = 0
+shield = 0
 aggressive = true
 currentMove = 0
 moves = Array[ExtResource("3_vnq5e")]([SubResource("Resource_fhvko")])

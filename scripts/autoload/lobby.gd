@@ -1,4 +1,7 @@
 extends Node
+
+class_name Server
+#region Variables
 #region Server Constants
 const PORT: int = 5323
 const DEFAULT_SERVER_IP: String = "127.0.0.1" # IPv4 localhost
@@ -27,6 +30,7 @@ var myName: String
 var me: Player = null
 ## Stores the reference to the level scene
 var levelScene: Control
+var levelNode
 #endregion
 
 #region Server Data
@@ -43,7 +47,7 @@ var players: Dictionary = {}
 var playerNumbers: Dictionary = {}
 
 ## This contains all the ids of the players who have successfully chosen their starting hand.
-var playersReady = []
+var playersReady: Array[int] = []
 
 ## Stores all the card selection indexes. Key is the player ID, value is an array with the deck indexes selected.
 var playerCardSelectionIndexes: Dictionary = {}
@@ -64,12 +68,11 @@ var gameState: Dictionary = {
 ## @deprecated
 var playerIDs: Array[int]
 
-var gameRound: int = 0
+var gameRound: int = 1
 
 @warning_ignore("unused_parameter")
 var gridTiles: Array[Array]
 var activeCards: Array[Array]
-## TODO do not hardcode
 #endregion
 
 #region Card Draw Phase Signals
@@ -95,8 +98,6 @@ signal moveUpdated(index: Array[int], move: String)
 ## This signal emits the index related to the grid and the ability ID
 signal abilityUpdated(index: Array[int], ability: String)
 ## will be split into seperate signals later.
-## @deprecated
-signal cardStatUpdated(index: Array[int], statName: String, newMagnitude: int)
 ## Targets: Array conotianing the player IDs.
 ## Params should be well-ordered.
 ## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
@@ -106,11 +107,9 @@ signal playerHealthUpdated(targets: Array[int], oldHealth: Array[int], wasSet: b
 ## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
 signal playerEnergyUpdated(targets: Array[int], oldEnergy: Array[int], wasSet: bool)
 signal gameStateChange(oldGameState: Dictionary)
+#endregion
 
 #region Card Status Updates
-## @deprecated
-signal cardHealthUpdated(location: Array[int], oldHealth)
-
 ## Called when a card is summoned.
 ## NOTE: the Lobby script does not store card data. That is the grid's responsibility.
 signal summon(target: Array[int], _card: Card)
@@ -131,13 +130,27 @@ signal kill(target: Variant)
 ## NOTE: the Lobby script does not directly process what happens here.
 signal ability(target: Variant, ability: Ability)
 #endregion
-#endregion
 
 #region Game Constants (useful constants to know/have)
 var emptyCard = load("res://resources/empty.tres")
 var emptyCardSerialized = emptyCard.serialize()
 #endregion
 
+#region Utility Nodes/variables
+## NOTE: to be initialized in the [method Server._ready] function
+var animationTimer: Timer
+#endregion
+
+#region Animations
+## Default animation playback length in ms
+const defaultAnimationRuntime_ms: int = 1000
+## Default animation playback length in s
+const defaultAnimationRuntime_s: float = defaultAnimationRuntime_ms / 1000.0
+
+## Stores the next animations to be played
+var nextAnimations: Array[Dictionary] = []
+#endregion
+#endregion
 
 #region Basic Server Functions
 func _ready():
@@ -150,6 +163,13 @@ func _ready():
 	multiplayer.connected_to_server.connect(connectedToServer)
 	multiplayer.connection_failed.connect(connectionFailed)
 	#multiplayer.server_disconnected.connect(_on_server_disconnected)
+	
+	# initialize utility nodes/variables
+	animationTimer = Timer.new()
+	animationTimer.wait_time = 1.0 # default value
+	animationTimer.one_shot = true
+	animationTimer.timeout.connect(animationFinished)
+	add_child(animationTimer)
 
 func peerConnected(id: int):
 	print("Peer connected: ", id)
@@ -175,8 +195,6 @@ func connectedToServer():
 func connectionFailed():
 	print("Couldn't connect.")
 #endregion
-
-var levelNode
 
 #region Lobby & Pre-game Functions
 ## ONLY to be called when a player is joining through the lobby
@@ -347,6 +365,7 @@ func deserialize(_object: Dictionary) -> Variant:
 #endregion
 
 #region Game Logic & Update Pushes
+#region Deck & Card Draw
 ## Reshuffles the deck of the player with the ID specified.
 ## ID refers to the player whose deck is being shuffled.
 ## This function notifies the player that their deck has been shuffled (not implemented yet)
@@ -395,11 +414,9 @@ func rerollWish(index: int, id: int):
 @rpc("authority", "reliable")
 func approvedRerollWish(index: int, card: String):
 	newCard.emit(index, card)
+#endregion
 
-
-
-
-
+#region Game state
 ## CRITICAL vulnerable to the wrong player making requests
 ## Called when the game stage is to change.
 ## Can be called by anyone, but only takes effect if the correct person calls it.
@@ -432,7 +449,7 @@ func changeGameState(id: int):
 					approveGameStateChange.rpc({"name": "Turn", "player": 1})
 			"Turn":
 				# if the right player requests a game state change,
-				if playerNumbers[id] == gameState["player"]:
+				if playerNumbers.has(id) and playerNumbers[id] == gameState["player"]:
 					match playerNumbers[id]:
 						1:
 							approveGameStateChange.rpc({"name": "Turn", "player": 2})
@@ -477,23 +494,19 @@ func approveGameStateChange(newGameState: Dictionary):
 			"Battle":
 				battle(gameState.lane)
 
-## Called when all players' turns have expired and a new round start. Should ONLY be called by the host.
+## Called when all players' turns have expired and a new round start.
+## Server-side function. Should ONLY be called by the host.
 func serverNextRound():
 	gameRound += 1
-	var signalsToFire = []
 
-	var allIDs = players.keys()
 	# give energy
-	if gameRound < 10:
-		setEnergy.rpc(allIDs, gameRound)
-	else:
-		setEnergy.rpc(allIDs, 10)
+	setEnergy.rpc(playersReady, gameRound)
 	
 	# draw cards
 	
 	# go back to player 1's turn
 	approveGameStateChange.rpc({"name": "Turn", "player": 1})
-
+#endregion
 
 #region Change Player Stats
 ## Called by the server when someone's energy is set to a specific value (NOT added)
@@ -546,6 +559,7 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 	playerHealthUpdated.emit(targetIDs, oldHealths, false)
 #endregion
 
+#region Card Related?
 ## The move parameter will change to a Dictionary in the future. TODO
 ## CRITICAL vulnerable to exploits
 ## Locations as seen by the player
@@ -594,7 +608,6 @@ func changeActiveMove():
 	# TODO ensure updates are pushed
 	pass
 
-#region Inform Client of Attacks and Moves TODO change this name
 # what the hell is this? WARNING
 func changeCardHealth(target: Card, oldCardHealth: int):
 	print("The card's health changed gained by ", target.health - oldCardHealth)
@@ -604,9 +617,8 @@ func changeCardHealth(target: Card, oldCardHealth: int):
 
 #region Battle logic
 ## lane: The lane variable refers to the array index of the lane (0-4)
+## To ONLY be used on the server.
 func battle(lane: int):
-	var itemsToExecute: Array[Dictionary] = []
-	
 	# have all (both) cards attack each other at the same time
 	var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
 	var target = null
@@ -632,14 +644,15 @@ func battle(lane: int):
 			else:
 				target = 1
 		else:
-			target = cardsInLane[1 - i]
+			target = [1 - i, lane] as Array[int]
 		
-		nextItemToExecute = nextCard.execute(target)
+		var temp = nextCard.execute(target)
+		nextItemToExecute = temp
 		if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
-			itemsToExecute.append(nextItemToExecute)
+			nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
 	
 	# tell everyone to display animations and update card stats.
-	execute.rpc(itemsToExecute)
+	execute.rpc(nextAnimations)
 
 # TODO make description useful and informative
 ## Called by the server to indicate that stats for Entities and/or Players have changed.
@@ -655,15 +668,25 @@ func battle(lane: int):
 ##		NOTE: the only important information "cause" gives is the location from where the attack animation should begin. (e.g. client knows to tell the 5th lane's environment to play its animation)
 ##	type: one of these: "Card Draw", "Summon", "Attack", "Buff", "Debuff", "Kill", "Ability"
 ##	directAttack: true/false
+##	duration: animation duration in ms
 ##	statChange: 
 ##		# TODO fix this comment here{
 ##		Key names should be similar to the parameters of the object being changed.
 ##	}
 ## }
 ## NOTE: the order of the targets array should not matter.
-## The next gameplay functions are to be called once the host has finished playing the animations.
+## NOTE: there is a CRITICAL bug with the target parameter somewhere in the code
 @rpc("authority", "call_local", "reliable")
-func execute(targets: Array[Dictionary]):
+func execute(_targets: Array[Dictionary]):
+	# clear the animations but keep a duplicate
+	var targets: Array[Dictionary] = _targets.duplicate()
+	nextAnimations = []
+	_targets = []
+	
+	print_debug("Processing the following animations: ", targets)
+	
+	var maxDuration: int = 0
+	
 	# start executing EVERY stat change animation right now
 	for i in targets:
 		# TODO ensure validity
@@ -689,11 +712,29 @@ func execute(targets: Array[Dictionary]):
 				ability.emit(i.target, deserialize(i.statChange))
 			_: # if they didn't give a valid type,
 				continue # ignore this entire request
+		
+		# find the longest animation duration in this batch of animations
+		if i.has("duration") and i.duration > maxDuration:
+			maxDuration = i.duration
+	
+	# wait for the next animation batch
+	if maxDuration == 0: # avoid setting wait_time to 0 
+		animationTimer.wait_time = defaultAnimationRuntime_s
+	else:
+		# NOTE: convert ms to s
+		animationTimer.wait_time = maxDuration / 1000
+	animationTimer.start()
+	
+
+## To ONLY be used on the server
+func animationFinished():
+	# if there are more animations to play as a result of the previous attacks/animations,
+	if not nextAnimations.is_empty():
+		execute.rpc(nextAnimations)
+	else:
+		changeGameState.rpc_id(1, -1)
 #endregion
 
-#@rpc("authority", "call_local", "reliable")
-#func changeEnvironment(newEnvironment: Dictionary, lane: int):
-	#pass
 #region Card Gain
 ## The function that handles a player drawing a card from their deck.
 ## Only to be called on the server.
@@ -821,5 +862,9 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
 	
 	summon.emit(location, deserialize(_card))
+
+#@rpc("authority", "call_local", "reliable")
+#func changeEnvironment(newEnvironment: Dictionary, lane: int):
+	#pass
 #endregion
 #endregion

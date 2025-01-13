@@ -31,7 +31,14 @@ func animationSummon(target: Array[int], _card: Card) -> void:
 		$Card.faceup = true # hard override
 		$Card.show()
 		
-		print("A card has just been summoned at ", self.get_meta("id")) # TODO animations
+		# whisper to the card what position it is on
+		if _card is Entity:
+			_card.location = self.get_meta("id")
+		
+		# add the card in
+		$Card.addCard(_card)
+		
+		print("A card has been summoned at ", self.get_meta("id")) # TODO animations
 
 func animationAttack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
@@ -49,11 +56,13 @@ func animationDebuff(target: Variant, source: Variant, statChange: Dictionary, d
 		$Card.card.changeStats(statChange)
 
 func animationKill(target: Variant) -> void:
-	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
+	var selfLocation = self.get_meta("id")
+	if typeof(target) == TYPE_ARRAY && target == selfLocation:
 		# TODO add an actual animation
-		print("Oh no! The card at ", self.get_meta("id"), " has just perished!") # TODO animations
+		print("Oh no! The card at ", selfLocation, " has just perished!") # TODO animations
 		$Card.hide()
 		$Card.card = null
+		Lobby.activeCards[selfLocation[0]][selfLocation[1]] = null # tell the server that this card is no longer existant
 
 func animationAbility(target: Variant, ability: Ability) -> void:
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):

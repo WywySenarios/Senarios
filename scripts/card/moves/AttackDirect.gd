@@ -5,13 +5,23 @@ class_name AttackDirect extends Move
 @export var base_damage : int = 0
 
 ## Deducts health from the target if the attacker is able to attack.
-func execute(target: Variant, attacker: Card) -> Dictionary:
+func execute(_target: Variant, attacker: Card) -> Dictionary:
 	if (attacker.aggressive):
 		# account for attack bonuses AND the defense bonuses of the target
 		var damage = (base_damage * attacker.attackMultiplier) + attacker.attackBonus
+		var target
 		
 		# if the target is a Card and therefore may have defense bonuses/damage reductions,
-		if target is Card:
+		if _target is Array[int]:
+			target = Lobby.activeCards[_target[0]][_target[1]]
+			
+			if target is Control:
+				target = target.card
+			
+			# type safety
+			if target == null:
+				return {}
+			
 			# Integer division is intended. Welcome to the world of game mechanics, I guess.
 			@warning_ignore("integer_division")
 			damage /= target.defenseMultiplier
@@ -20,9 +30,11 @@ func execute(target: Variant, attacker: Card) -> Dictionary:
 			else:
 				# WARNING animations for 0 hp change may be removed in the future.
 				damage = 0 # we still want to display that a card got attacked, even if they didn't lose any health because of it.
+		elif _target is int: # if the target is a player,
+			pass
 			
 		return {
-			"target": target,
+			"target": _target,
 			"cause": attacker.serialize(), # TODO save runtime by passing this in or adding this in in another stage/function
 			"type": "Attack",
 			"directAttack": true,

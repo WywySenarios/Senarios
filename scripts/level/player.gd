@@ -32,4 +32,4 @@ func changeHealth(id: int, oldHealth: int):
 	if Lobby.playerNumbers[id] == player.playerNumber:
 		print("Player ", self, " gained ", player.health - oldHealth, " health")
 		$Health.text = player.health
-#endregion
+#endregion Animations

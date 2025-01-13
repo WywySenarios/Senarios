@@ -100,19 +100,6 @@ func _on_card_placement() -> void:
 	$Contents/Particles/placement.restart()
 	$Contents/Particles/placement.emitting = true
 
-func onMouseEntered() -> void:
-	if isInInventory:
-		Draggables.selectCard(self)
-	
-	Global.focuseCard(self)
-
-
-func onMouseExited() -> void:
-	if isInInventory:
-		Draggables.deselectCard(self)
-	
-	Global.unfocusCard(self)
-
 
 func onGUIInput(event: InputEvent) -> void:
 	# a valid input is ONLY:
@@ -167,11 +154,22 @@ func addCard(_card: Card) -> bool:
 		$"Contents/Attack Container/Attack".text = str(card.health)
 	return true
 
-func onMouseEnteredInventory() -> void:
-	if isInInventory:
+func onMouseEntered() -> void:
+	# if it's my card and it's in my inventory,
+	if isInInventory and faceup:
+		Draggables.selectCard(self)
 		$AnimationPlayer.play("Select")
+	
+	Global.focuseCard(self)
 
 
-func onMouseExitedInventory() -> void:
-	if isInInventory:
+func onMouseExited() -> void:
+	# if it's my card and it's in my inventory and I'm not clickign right now,
+	if isInInventory: # and not Input.is_action_pressed("click")
+		Draggables.deselectCard(self)
 		$AnimationPlayer.play("Deselect")
+	
+	Global.unfocusCard(self)
+
+func execute(target: Variant) -> Dictionary:
+	return card.execute(target)

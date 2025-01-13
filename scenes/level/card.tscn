@@ -142,9 +142,5 @@ offset_bottom = 23.0
 text = "Attack"
 
 [connection signal="gui_input" from="." to="." method="onGUIInput"]
-[connection signal="mouse_entered" from="." to="." method="onMouseEnteredInventory"]
-[connection signal="mouse_exited" from="." to="." method="onMouseExitedInventory"]
-[connection signal="mouse_entered" from="Contents/Backside" to="." method="onMouseEntered"]
-[connection signal="mouse_exited" from="Contents/Backside" to="." method="onMouseExited"]
-[connection signal="mouse_entered" from="Contents/Frontside" to="." method="onMouseEntered"]
-[connection signal="mouse_exited" from="Contents/Frontside" to="." method="onMouseExited"]
+[connection signal="mouse_entered" from="." to="." method="onMouseEntered"]
+[connection signal="mouse_exited" from="." to="." method="onMouseExited"]
