@@ -42,7 +42,7 @@ func animationSummon(target: Array[int], _card: Card) -> void:
 		print("A card has been summoned at ", target, " and I am: ", Lobby.myID) # TODO animations
 
 func animationAttack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
-	if Lobby.multiplayer.is_server():
+	if not Lobby.multiplayer.is_server() and target is Array[int]:
 		target = Lobby.flipCoords(target)
 	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
@@ -50,7 +50,7 @@ func animationAttack(target: Variant, source: Variant, statChange: Dictionary, d
 		$Card.card.changeStats(statChange)
 
 func animationBuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
-	if Lobby.multiplayer.is_server():
+	if not Lobby.multiplayer.is_server() and target is Array[int]:
 		target = Lobby.flipCoords(target)
 	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
@@ -58,12 +58,15 @@ func animationBuff(target: Variant, source: Variant, statChange: Dictionary, dir
 		$Card.card.changeStats(statChange)
 
 func animationDebuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if not Lobby.multiplayer.is_server() and target is Array[int]:
+		target = Lobby.flipCoords(target)
+	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
 		print("The card at ", self.get_meta("id"), " has received a debuff!") # TODO animations
 		$Card.card.changeStats(statChange)
 
 func animationKill(target: Variant) -> void:
-	if Lobby.multiplayer.is_server():
+	if not Lobby.multiplayer.is_server() and target is Array[int]:
 		target = Lobby.flipCoords(target)
 	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
@@ -74,7 +77,7 @@ func animationKill(target: Variant) -> void:
 		Lobby.activeCards[target[0]][target[1]] = null # tell the server that this card is no longer existant
 
 func animationAbility(target: Variant, ability: Ability) -> void:
-	if Lobby.multiplayer.is_server() and target is Array[int]:
+	if not Lobby.multiplayer.is_server() and target is Array[int]:
 		target = Lobby.flipCoords(target)
 	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):

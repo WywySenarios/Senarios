@@ -24,12 +24,17 @@ var inventoryLength
 @export var deck: Deck
 var deckLength: int
 
+signal died(playerNumber: int)
+signal healthChanged(playerNumber: int, oldHealth: int)
+
 func ready():
 	if deck != null:
 		deckLength = len(deck.content)
 	
 	if inventory != null:
 		inventoryLength = len(inventory)
+	
+	died.connect(Lobby.gameEnd)
 
 func serializedInventory():
 	var output: Array[Dictionary] = []
@@ -37,3 +42,21 @@ func serializedInventory():
 		output.append(i.serialize())
 	
 	return output
+
+
+## Input is the stats that are being changed.
+## Do NOT handle animation logic.
+func changeStats(target: Variant, _cause: Variant, statChange: Dictionary, directAttack: bool):
+	# proceed only if the relevant player has been hit
+	if not target is int or target != playerNumber:
+		return
+	
+	var oldStats = {}
+	
+	if statChange.has("health"):
+		oldStats["health"] = health
+		health += statChange.health
+		healthChanged.emit(playerNumber, oldStats.health)
+	
+	if health <= 0:
+		died.emit(playerNumber)

@@ -89,9 +89,6 @@ signal inventorySizeIncreased(id: int, oldInventorySize: int, card)
 ## It is intended for the client to play an animation when this signal is called.
 signal deckUpdated(id: int, oldDeckSize: int)
 
-## This signal emits with the index related to the grid and the move ID
-@warning_ignore("unused_signal")
-signal moveUpdated(index: Array[int], move: String)
 ## This signal emits the index related to the grid and the ability ID
 @warning_ignore("unused_signal")
 signal abilityUpdated(index: Array[int], ability: String)
@@ -612,62 +609,64 @@ func changeCardHealth(target: Card, oldCardHealth: int):
 ## lane: The lane variable refers to the array index of the lane (0-4)
 ## To ONLY be used on the server.
 func battle(lane: int):
-	# have all (both) cards attack each other at the same time
-	var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
-	var target = null
-	var nextCard = null
-	var nextCardCard = null
-	var nextItemToExecute: Dictionary = {}
-	# WARNING hard-coded
-	for i in range(0, 2):
-		nextCard = cardsInLane[i]
-		
-		# only execute moves on cards that actually exist.
-		if nextCard == null:
-			print("skipping card!", i)
-			continue
-		else:
-			nextCardCard = nextCard.card
-			if nextCardCard == null or nextCardCard.move == null:
-				print("I'm skipping you because you are null or your moves are null!")
+	if multiplayer.is_server():
+		# have all (both) cards attack each other at the same time
+		var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
+		var target = null
+		var nextCard = null
+		var nextCardCard = null
+		var nextItemToExecute: Dictionary = {}
+		# WARNING hard-coded
+		for i in range(0, 2):
+			nextCard = cardsInLane[i]
+			
+			# only execute moves on cards that actually exist.
+			if nextCard == null:
+				print("skipping card!", i)
 				continue
-		
-		print_debug(nextCardCard.move.getType())
-		match nextCardCard.move.getType():
-			"AttackDirect":
-				# WARNING hard-coded
-				# cards currently always attack straight. More logic will be needed if they don't.
-				# TODO custom targetting function that can be called by any move or ability
-				if cardsInLane[1 - i] == null: # if there is no card to block the attack,
-					# attack the opposing player.
-					# remember that i = 0 means that a card is related to player 1.
+			else:
+				nextCardCard = nextCard.card
+				if nextCardCard == null or nextCardCard.move == null:
+					print("I'm skipping you because you are null or your moves are null!")
+					continue
+			
+			print_debug(nextCardCard.move.getType())
+			match nextCardCard.move.getType():
+				"AttackDirect":
 					# WARNING hard-coded
-					if i == 0: # if the card is player 1's card,
-						target = 2
+					# cards currently always attack straight. More logic will be needed if they don't.
+					# TODO custom targetting function that can be called by any move or ability
+					if cardsInLane[1 - i] == null: # if there is no card to block the attack,
+						# attack the opposing player.
+						# remember that i = 0 means that a card is related to player 1.
+						# WARNING hard-coded
+						if i == 0: # if the card is player 2's card,
+							target = 1
+						else:
+							target = 2
 					else:
+						# IDK why, but this works.
+						target = [1 - i, lane] as Array[int]
+				"Conjure":
+					# always tell the conjure card which player they belong to
+					# WARNING hard-coded
+					# index 1 -> player 1
+					# index 2 -> player 2
+					if i == 1:
 						target = 1
-				else:
-					target = [i, lane] as Array[int]
-			"Conjure":
-				# always tell the conjure card which player they belong to
-				# WARNING hard-coded
-				# index 1 -> player 1
-				# index 2 -> player 2
-				if i == 1:
-					target = 1
-				else:
-					target = playerNumbers.find_key(2)
-			_:
-				print_debug("Card at lane " + str(lane) + " does not have a move.")
+					else:
+						target = playerNumbers.find_key(2)
+				_:
+					print_debug("Card at lane " + str(lane) + " does not have a move.")
+			
+			var temp = nextCard.execute(target)
+			nextItemToExecute = temp
+			# godot actually hates me because nextItemToExecute.is_empty() returns false positives. Bruh. I guess I don't desserve safety then.
+			if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
+				nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
 		
-		var temp = nextCard.execute(target)
-		nextItemToExecute = temp
-		# godot actually hates me because nextItemToExecute.is_empty() returns false positives. Bruh. I guess I don't desserve safety then.
-		if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
-			nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
-	
-	# tell everyone to display animations and update card stats.
-	execute.rpc(nextAnimations)
+		# tell everyone to display animations and update card stats.
+		execute.rpc(nextAnimations)
 
 # TODO make description useful and informative
 ## Called by the server to indicate that stats for Entities and/or Players have changed.
@@ -712,10 +711,12 @@ func execute(_targets: Array[Dictionary]):
 			#continue
 		
 		match i["type"]:
-			"Conjure": 
-				handOverCard(i.target, i.statChange.card)
+			"Conjure":
+				if multiplayer.is_server():
+					handOverCard(i.target, i.statChange.card)
 			"Card Draw":
-				drawCard(i.target) # the target should be a player.
+				if multiplayer.is_server():
+					drawCard(i.target) # the target should be a player.
 			"Summon":
 				summon.emit(i.target, deserialize(i.statChange))
 			"Attack":
@@ -753,11 +754,12 @@ func gameEnd(loser: int):
 
 ## To ONLY be used on the server
 func animationFinished():
-	# if there are more animations to play as a result of the previous attacks/animations,
-	if not nextAnimations.is_empty():
-		execute.rpc(nextAnimations)
-	else:
-		changeGameState.rpc_id(1, -1)
+	if multiplayer.is_server():
+		# if there are more animations to play as a result of the previous attacks/animations,
+		if not nextAnimations.is_empty():
+			execute.rpc(nextAnimations)
+		else:
+			changeGameState.rpc_id(1, -1)
 #endregion
 
 #region Card Gain
@@ -877,7 +879,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	# they have enough energy to place the card
 	var canPlace: bool = true # innocent until proven guilty
 	# deal with valid placement spots
-	if not _card.has("subtype"): # card is NOT an entity, special, or environment,
+	if not _card.has("subtype"): # card is NOT an entity, special, or environment, (invalid card),
 		canPlace = false
 	elif _card.subtype == "Entity":
 		# make sure there is a free spot on the board AND the player has played the card on their side of the field
@@ -925,11 +927,14 @@ func disapproveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 ## Enter an ID of -1 if nobody initally requested for that exact card to be placed.
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
-	# WARNING: hard-coded
-	
-	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
-	
-	summon.emit(location, deserialize(_card))
+	# we can assume the card has the subtype attribute because the server has approved the card placement request.
+	match _card.subtype:
+		"Entity":
+			# WARNING: hard-coded
+			levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
+			summon.emit(location, deserialize(_card))
+		"Special":
+			pass
 
 #@rpc("authority", "call_local", "reliable")
 #func changeEnvironment(newEnvironment: Dictionary, lane: int):

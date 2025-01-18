@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Entity" load_steps=5 format=3 uid="uid://7ju8fknlgqe8"]
+
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_8el13"]
+[ext_resource type="Script" path="res://scripts/card/moves/AttackDirect.gd" id="2_glpmm"]
+[ext_resource type="Script" path="res://scripts/card/entity.gd" id="2_jdjrf"]
+
+[sub_resource type="Resource" id="Resource_h6rwg"]
+script = ExtResource("2_glpmm")
+base_damage = 5
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[resource]
+script = ExtResource("2_jdjrf")
+health = 3
+hpr = 0
+shield = 0
+aggressive = true
+abilities = Array[ExtResource("1_8el13")]([])
+name = "Nebula Trooper"
+cardID = "Nebula-Trooper"
+cardType = ""
+generation = 4
+cost = 4.0
+type = Array[String]([])
+move = SubResource("Resource_h6rwg")

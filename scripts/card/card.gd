@@ -11,7 +11,7 @@ class_name Card
 @export_range(1, 6) var generation : int
 @export var cost : float = 0
 @export var type : Array[String]
-@export var image : CompressedTexture2D
+var image : CompressedTexture2D
 @export var move : Move = Move.new()
 
 ## Called when the card's health changes. This signal will obviously only apply to Entities.

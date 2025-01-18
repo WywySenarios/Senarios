@@ -14,7 +14,7 @@ quick_tooltip = ""
 
 [resource]
 script = ExtResource("3_vlxq6")
-health = 4
+health = 2
 hpr = 0
 shield = 0
 aggressive = true

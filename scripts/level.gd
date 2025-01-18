@@ -40,9 +40,9 @@ func _ready() -> void:
 	# register players nodes' player variables (DIRECTLY link to server, no pipelining variables anymore :)
 	for i in Lobby.players:
 		if i == Lobby.myID:
-			myNode.player = Lobby.players[i]
+			myNode.addPlayer(Lobby.players[i])
 		else:
-			opponentNode.player = Lobby.players[i]
+			opponentNode.addPlayer(Lobby.players[i])
 	
 	# register this node with the server
 	Lobby.levelNode = self
@@ -54,6 +54,8 @@ func _ready() -> void:
 	Lobby.inventorySizeIncreased.connect(gainCardAnimation) # card has been given to a player
 	Lobby.playerEnergyUpdated.connect(changeEnergy) # someone's energy has changed
 	Lobby.playerHealthUpdated.connect(changeHealth) # someone's health has changed
+	# game has ended
+	Lobby.gameLost.connect(onGameEnd)
 	
 	# If you are the host, calling this will enable the card selection phase to start
 	Lobby.preGame()
