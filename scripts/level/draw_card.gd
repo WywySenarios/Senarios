@@ -18,9 +18,9 @@ var mouseInside: bool = false
 #func _process(delta):
 	#pass
 
-func reassignCard(_index: int, card: Card):
+func reassignCard(_index: int, cardID: String):
 	index = _index
-	$"Frontside/card_head".texture = card.image
+	$"Frontside/card_head".texture = load("res://assets/cards/card_images/cardImage-" + cardID + ".png")
 
 func swapCard():
 	if 0 <= index and index <= 3: # do NOT refresh the card after it has already been refreshed once

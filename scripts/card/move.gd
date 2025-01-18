@@ -9,6 +9,9 @@ func _init(arg: Variant = null):
 		TYPE_DICTIONARY:
 			deserialize(arg)
 
+func getType() -> String:
+	return "Move"
+
 ## Returns a Dictionary containing all the information that this Move wants to change.
 func execute(target: Variant, parent: Card) -> Dictionary:
 	return {}
@@ -42,4 +45,3 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("quick_tooltip") and _object.content.quick_tooltip != quick_tooltip:
 		quick_tooltip = _object.content.quick_tooltip
 		# Do not emit signal (flavor text)
-	

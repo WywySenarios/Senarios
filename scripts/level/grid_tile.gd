@@ -35,7 +35,7 @@ func animationSummon(target: Array[int], _card: Card) -> void:
 		if _card is Entity:
 			_card.location = self.get_meta("id")
 		
-		# add the card in
+		# add the card to the gridtile
 		$Card.addCard(_card)
 		
 		print("A card has been summoned at ", self.get_meta("id")) # TODO animations

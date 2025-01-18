@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="Deck" load_steps=2 format=3 uid="uid://bvb8rrw1858wl"]
+[gd_resource type="Resource" script_class="Deck" load_steps=2 format=3 uid="uid://djspaja0ps0ju"]
 
-[ext_resource type="Script" path="res://scripts/deck_maker/deck.gd" id="2_aypj0"]
+[ext_resource type="Script" path="res://scripts/card/deck.gd" id="1_nja7o"]
 
 [resource]
-script = ExtResource("2_aypj0")
-content = Array[String](["entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman", "entity_Gen-4-Stickman"])
+script = ExtResource("1_nja7o")
+name = ""
+content = Array[String](["Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman-Factory", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman", "Gen-4-Stickman"])

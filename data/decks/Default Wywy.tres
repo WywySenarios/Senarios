@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Deck" load_steps=2 format=3 uid="uid://dch4ujpcowj44"]
 
-[ext_resource type="Script" path="res://scripts/deck_maker/deck.gd" id="1_120i7"]
+[ext_resource type="Script" path="res://scripts/card/deck.gd" id="1_120i7"]
 
 [resource]
 script = ExtResource("1_120i7")

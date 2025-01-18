@@ -4,6 +4,9 @@ class_name AttackDirect extends Move
 ## POSITIVITY: A positive integer leads to the target losing health.
 @export var base_damage : int = 0
 
+func getType() -> String:
+	return "AttackDirect"
+
 ## Deducts health from the target if the attacker is able to attack.
 func execute(_target: Variant, attacker: Card) -> Dictionary:
 	if (attacker.aggressive):
@@ -11,7 +14,6 @@ func execute(_target: Variant, attacker: Card) -> Dictionary:
 		var damage = (base_damage * attacker.attackMultiplier) + attacker.attackBonus
 		var target
 		
-		# if the target is a Card and therefore may have defense bonuses/damage reductions,
 		if _target is Array[int]:
 			target = Lobby.activeCards[_target[0]][_target[1]]
 			

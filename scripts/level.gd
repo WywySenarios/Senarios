@@ -98,7 +98,8 @@ func changeCardSelectionCard(index: int, newCard: String) -> void:
 		print("Card selection card's node was null. Aborting update...", NodePath(str(index)), ", ", Lobby.myID)
 		return
 	
-	relevantNode.reassignCard(index, load("res://resources/" +  newCard + ".tres"))
+	# WARNING hard-coded
+	relevantNode.reassignCard(index, newCard)
 
 #region Animations
 ## Does not guarentee that the correct energy change has been displayed (if the client's current energy reading is wrong).
@@ -183,7 +184,6 @@ func changeGameState(oldGameState: Dictionary) -> void:
 			# show the next turn button if it's your turn
 			if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn": # if the new game state is my turn
 				$"Player HUD/Next Turn Button".disabled = false
-				print_debug("Next turn button has been enabled.")
 		"Battle":
 			print("Battle! Lane: ", gameState.lane) # TODO make this line unecessary
 	
@@ -200,4 +200,12 @@ func requestTurnChange() -> void:
 	if Lobby.gameState["player"] == Lobby.playerNumbers[Lobby.myID] and Lobby.gameState["name"] == "Turn":
 		print_debug("Requesting turn change...")
 		Lobby.changeGameState.rpc_id(1, Lobby.myID)
+
+func onGameEnd(loser: int) -> void:
+	if loser == Lobby.playerNumbers[Lobby.myID]:
+		$"End Game Message".text = "You lost!"
+	else:
+		$"End Game Message".text = "You won!"
+	
+	$"End Game Message".show()
 #endregion

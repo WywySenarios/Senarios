@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Entity" load_steps=6 format=3 uid="uid://bijw6ubdt0heg"]
+
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_idxnr"]
+[ext_resource type="Script" path="res://scripts/card/move.gd" id="2_6ve4k"]
+[ext_resource type="Script" path="res://scripts/card/moves/Conjure.gd" id="3_e54j8"]
+[ext_resource type="Script" path="res://scripts/card/entity.gd" id="3_vlxq6"]
+
+[sub_resource type="Resource" id="Resource_udslo"]
+script = ExtResource("3_e54j8")
+cardToConjure = "Gen-4-Stickman"
+conjureType = Array[String]([""])
+name = "Create Stickman"
+tooltip = ""
+quick_tooltip = ""
+
+[resource]
+script = ExtResource("3_vlxq6")
+health = 2
+hpr = 0
+shield = 0
+aggressive = true
+currentMove = 0
+moves = Array[ExtResource("2_6ve4k")]([SubResource("Resource_udslo")])
+abilities = Array[ExtResource("1_idxnr")]([])
+name = "N/A"
+cardID = "Gen-4-Stickman-Factory"
+cardType = ""
+generation = 4
+cost = 1.0
+type = Array[String]([])

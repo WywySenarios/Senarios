@@ -10,7 +10,6 @@ var emptyCardScene: Control
 
 var focusedCard: Control = null
 signal updatedFocusedCard(card: Control)
-signal cardClicked(card: Control)
 
 func _ready():
 	emptyCardScene = preload("res://scenes/level/card.tscn").instantiate()
@@ -31,6 +30,7 @@ func unfocusCard(card: Control):
 		updatedFocusedCard.emit(focusedCard)
 
 ## Creates a card out of a dictionary of data.
+## @deprecated
 func createCard(arg: Dictionary) -> Card:
 	# TODO ensure valid input?
 	if not arg.has("subtype"):
@@ -45,3 +45,7 @@ func createCard(arg: Dictionary) -> Card:
 			return null
 		_:
 			return null
+
+## Loads a card based on the card ID given. This is intended to make file pathing changes easier.
+func loadCard(cardID: String):
+	return load("res://resources/" + cardID + ".tres")

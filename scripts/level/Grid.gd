@@ -139,7 +139,6 @@ func _on_card_placement(card: Control) -> void:
 ## Called when the server approves a card placement request
 ## @experimental
 func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[int]) -> void:
-	print("Approved!")
 	var card: Control
 	var gridTile: Control
 	if id == Lobby.myID: # if this card is mine,

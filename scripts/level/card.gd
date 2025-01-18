@@ -58,7 +58,26 @@ func _ready() -> void:
 	
 	# allow card dragging
 	dragTween.pause()
+
+
+## Adds a Card object and displays the correct stats relating to that card.
+## Setter for "card" attribute.
+## returns true if the card is valid and has been set.
+## Do not attempt to set the card to null. Use removeCard() function.
+func addCard(_card: Card) -> bool:
+	if _card == null:
+		return false
 	
+	# set the card attribute
+	card = _card
+	
+	# set card image
+	card_headImageRect.texture = card.image
+	
+	# TODO stats
+	if card is Entity:
+		$"Contents/Attack Container/Attack".text = str(card.health)
+	return true
 
 ## @experimental
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -85,16 +104,7 @@ func flipOver() -> void:
 		faceup = true
 
 
-func _on_deck_maker_card_body_entered(body) -> void:
-	if body.is_in_group("droppable"):
-		is_inside_droppable = true
-		body_ref = body
-
-
-func _on_deck_maker_card_body_exitsed(body) -> void:
-	if body.is_in_group("droppable"):
-		is_inside_droppable = false
-
+#region In Inventory Functions
 ## handles card placement animations :D
 func _on_card_placement() -> void:
 	$Contents/Particles/placement.restart()
@@ -134,26 +144,6 @@ func onGUIInput(event: InputEvent) -> void:
 		# a valid focus event is: (always at this stage :D)
 		#else:
 
-
-## Adds a Card object and displays the correct stats relating to that card.
-## Setter for "card" attribute.
-## returns true if the card is valid and has been set.
-## Do not attempt to set the card to null. Use removeCard() function.
-func addCard(_card: Card) -> bool:
-	if _card == null:
-		return false
-	
-	# set the card attribute
-	card = _card
-	
-	# set card image
-	card_headImageRect.texture = card.image
-	
-	# TODO stats
-	if card is Entity:
-		$"Contents/Attack Container/Attack".text = str(card.health)
-	return true
-
 func onMouseEntered() -> void:
 	# if it's my card and it's in my inventory,
 	if isInInventory and faceup:
@@ -170,6 +160,8 @@ func onMouseExited() -> void:
 		$AnimationPlayer.play("Deselect")
 	
 	Global.unfocusCard(self)
+
+#endregion
 
 func execute(target: Variant) -> Dictionary:
 	return card.execute(target)

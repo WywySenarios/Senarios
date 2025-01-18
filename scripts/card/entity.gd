@@ -11,8 +11,12 @@ var defenseBonus: int = 0 # linear---danage reduction after defense multiplier
 @export var aggressive : bool = true
 # TODO make this exportable 
 var statusEffects # status effects that currently apply to this card
+## NOT IMPLEMENTED YET
 @export var currentMove : int = 0 # current move that is selected (index of "moves" array)
+## NOT SUPPORTED YET
 @export var moves : Array[Move]
+
+## Runtime variable used to store the serialized moves. DO NOT use this for any purposes outside of this class.
 var serializedMoves: Array[Dictionary]
 @export var abilities : Array[Ability]
 
@@ -54,7 +58,7 @@ func execute(target: Variant) -> Dictionary:
 ## Does not modify the card's contents.
 ## @experimental
 func serialize() -> Dictionary:
-	var serializedMoves: Array[Dictionary] = []
+	serializedMoves = []
 	for i in moves:
 		serializedMoves.append(i.serialize())
 	
@@ -102,6 +106,46 @@ func deserialize(_object: Dictionary) -> void:
 	#if _object.content.has("base_damage") and _object.content.base_damage != base_damage:
 		#base_damage = _object.content.base_damage
 		## TODO emit signal
+	
+	if _object.content.has("health") and _object.content.health != health:
+		health = _object.content.health
+		# TODO emit signal
+		
+	if _object.content.has("hpr") and _object.content.hpr != hpr:
+		hpr = _object.content.hpr
+		# TODO emit signal
+		
+	if _object.content.has("shield") and _object.content.shield != shield:
+		shield = _object.content.shield
+		# TODO emit signal
+	
+	if _object.content.has("attackMultiplier") and _object.content.attackMultiplier != attackMultiplier:
+		attackMultiplier = _object.content.attackMultiplier
+		# TODO emit signal
+	
+	if _object.content.has("attackBonus") and _object.content.attackBonus != attackBonus:
+		attackBonus = _object.content.attackBonus
+		# TODO emit signal
+	
+	if _object.content.has("defenseMultiplier") and _object.content.defenseMultiplier != defenseMultiplier:
+		attackBonus = _object.content.defenseMultiplier
+		# TODO emit signal
+	
+	if _object.content.has("defenseBonus") and _object.content.defenseBonus != defenseBonus:
+		defenseBonus = _object.content.defenseBonus
+		# TODO emit signal
+	
+	if _object.content.has("aggressive") and _object.content.aggressive != aggressive:
+		aggressive = _object.content.aggressive
+		# TODO emit signal
+	
+	if _object.content.has("currentMove") and _object.content.currentMove != currentMove:
+		currentMove = _object.content.currentMove
+		# TODO emit signal
+		
+	if _object.content.has("statusEffects") and _object.content.statusEffects != statusEffects:
+		statusEffects = _object.content.statusEffects
+		# TODO emit signal
 	
 	# TODO fix checking if the data is the same (serializedMoves is not always updated correctly)
 	if _object.content.has("moves") and serializedMoves != _object.content.moves:

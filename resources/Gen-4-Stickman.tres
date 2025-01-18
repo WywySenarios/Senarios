@@ -26,6 +26,6 @@ name = "Stickman"
 cardID = "Gen-4-Stickman"
 cardType = ""
 generation = 4
-cost = 1.0
+cost = 0.0
 type = Array[String]([])
 image = ExtResource("1_518ne")

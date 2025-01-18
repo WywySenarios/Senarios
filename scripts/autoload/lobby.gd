@@ -39,11 +39,12 @@ var levelNode
 ## This will contain player info for every player, with the keys being each player's unique IDs.
 ## Each key should be the player's id (integer). Each value should be a player object.
 ## This dictionary is only populated with all the correct content on the server. Clients should have a limited access to correct information.
-## @experimental
 var players: Dictionary = {}
 
 ## Key: player ID
 ## Value: player number
+## CRITICAL TODO migrate everything where there is client/server interaction to player numbers
+## CRITICAL obsfucate player 1's ID.
 var playerNumbers: Dictionary = {}
 
 ## This contains all the ids of the players who have successfully chosen their starting hand.
@@ -63,11 +64,6 @@ var gameState: Dictionary = {
 	"player": -1
 }
 
-## An array that contains EVERY player's ID.
-## Currently does NOT work whatsoever. Consider using players.keys() instead.
-## @deprecated
-var playerIDs: Array[int]
-
 var gameRound: int = 1
 
 @warning_ignore("unused_parameter")
@@ -79,7 +75,7 @@ var activeCards: Array[Array]
 # ----------------------------------------
 # signals to be used during the card draw phase:
 ## This signal emits with the index of the deck and a string with the card ID
-signal newCard(index: int, card: String)
+signal newCard(index: int, card: Card)
 #endregion
 
 #region Gameplay Event Signals
@@ -94,8 +90,10 @@ signal inventorySizeIncreased(id: int, oldInventorySize: int, card)
 signal deckUpdated(id: int, oldDeckSize: int)
 
 ## This signal emits with the index related to the grid and the move ID
+@warning_ignore("unused_signal")
 signal moveUpdated(index: Array[int], move: String)
 ## This signal emits the index related to the grid and the ability ID
+@warning_ignore("unused_signal")
 signal abilityUpdated(index: Array[int], ability: String)
 ## will be split into seperate signals later.
 ## Targets: Array conotianing the player IDs.
@@ -107,6 +105,8 @@ signal playerHealthUpdated(targets: Array[int], oldHealth: Array[int], wasSet: b
 ## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
 signal playerEnergyUpdated(targets: Array[int], oldEnergy: Array[int], wasSet: bool)
 signal gameStateChange(oldGameState: Dictionary)
+## Loser (int): The loser's player NUMBER
+signal gameLost(loser: int)
 #endregion
 
 #region Card Status Updates
@@ -173,16 +173,11 @@ func _ready():
 
 func peerConnected(id: int):
 	print("Peer connected: ", id)
-	# add the player's ID to the registry
-	playerIDs.append(id)
-	playerIDs.sort()
 	
 	player_connected.emit(id)
 
 func peerDisconnected(id: int):
 	print("Player disconnected: ", id)
-	# remove the player's ID from the registry
-	playerIDs.pop_at(playerIDs.bsearch(id))	
 	
 	player_disconnected.emit(id)
 	
@@ -318,20 +313,13 @@ func preGame():
 #endregion
 
 #region Deserialization
-## This serializes certain objects into a dictionary.
-## This is inteended to be used in combination with RPCs.
-## Currently supports:
-## * []
-## @experimental
-func serialize(object: Variant) -> Dictionary:
-	print("Failed to serialize object (Lobby autoload script). Returning empty dictionary...")
-	return {}
-
 ## This deserializes certain objects from a dictionary.
 ## This is intended to be used in combination with RPCs.
 ## Currently supports:
-## * []
-## @experimental
+## * Entity
+## * Attack Direct
+## * Player
+## * Deck (I hope this is never used)
 func deserialize(_object: Dictionary) -> Variant:
 	if not _object.has("type"): # if the dictionary is missing a valid type
 		return null
@@ -344,6 +332,8 @@ func deserialize(_object: Dictionary) -> Variant:
 				object = Entity.new()
 			"AttackDirect":
 				object = AttackDirect.new()
+			"Conjure":
+				object = Conjure.new()
 			_:
 				return null
 	else:
@@ -397,7 +387,7 @@ func startingHand(cards: Array[String]):
 
 ## Called when the player wants to redraw a card during the card selection phase.
 # TODO fix up RPC paramters
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func rerollWish(index: int, id: int):
 	# check for valid input
 	if 0 <= index and index <= 3: # IDK why I need the "and" keyword here XD
@@ -483,7 +473,8 @@ func changeGameState(id: int):
 func approveGameStateChange(newGameState: Dictionary):
 	var oldGameState: Dictionary = gameState
 	
-	print("Game state change approved: ", newGameState)
+	if multiplayer.is_server():
+		print("Game state change approved: ", newGameState)
 	gameState = newGameState
 	
 	gameStateChange.emit(oldGameState)
@@ -500,9 +491,11 @@ func serverNextRound():
 	gameRound += 1
 
 	# give energy
-	setEnergy.rpc(playersReady, gameRound)
+	setEnergy.rpc(playersReady, 10) # gameRound
 	
 	# draw cards
+	for i in players.keys():
+		drawCard(i)
 	
 	# go back to player 1's turn
 	approveGameStateChange.rpc({"name": "Turn", "player": 1})
@@ -623,6 +616,7 @@ func battle(lane: int):
 	var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
 	var target = null
 	var nextCard = null
+	var nextCardCard = null
 	var nextItemToExecute: Dictionary = {}
 	# WARNING hard-coded
 	for i in range(0, 2):
@@ -630,26 +624,47 @@ func battle(lane: int):
 		
 		# only execute moves on cards that actually exist.
 		if nextCard == null:
+			print("skipping card!", i)
 			continue
-		
-		# WARNING hard-coded
-		# cards currently always attack straight. More logic will be needed if they don't.
-		# TODO custom targetting function that can be called by any move or ability
-		if cardsInLane[1 - i] == null: # if there is no card to block the attack,
-			# attack the opposing player.
-			# remember that i = 0 means that a card is related to player 1.
-			# WARNING hard-coded
-			if i == 0: # if the card is player 1's card,
-				target = 2
-			else:
-				target = 1
 		else:
-			target = [1 - i, lane] as Array[int]
+			nextCardCard = nextCard.card
+			if nextCardCard == null or nextCardCard.moves[nextCardCard.currentMove] == null:
+				print("I'm skipping you because you are null or your moves are null!")
+				continue
+		
+		print_debug(nextCardCard.moves[nextCardCard.currentMove].getType())
+		match nextCardCard.moves[nextCardCard.currentMove].getType():
+			"AttackDirect":
+				# WARNING hard-coded
+				# cards currently always attack straight. More logic will be needed if they don't.
+				# TODO custom targetting function that can be called by any move or ability
+				if cardsInLane[1 - i] == null: # if there is no card to block the attack,
+					# attack the opposing player.
+					# remember that i = 0 means that a card is related to player 1.
+					# WARNING hard-coded
+					if i == 0: # if the card is player 1's card,
+						target = 2
+					else:
+						target = 1
+				else:
+					target = [1 - i, lane] as Array[int]
+			"Conjure":
+				# always tell the conjure card which player they belong to
+				# WARNING hard-coded
+				# index 1 -> player 1
+				# index 2 -> player 2
+				if i == 1:
+					target = 1
+				else:
+					target = playerNumbers.find_key(2)
+			_:
+				print_debug("Card at lane " + str(lane) + " does not have a move.")
 		
 		var temp = nextCard.execute(target)
 		nextItemToExecute = temp
-		if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
-			nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
+		# godot actually hates me because nextItemToExecute.is_empty() returns false positives. Bruh. I guess I don't desserve safety then.
+		#if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
+		nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
 	
 	# tell everyone to display animations and update card stats.
 	execute.rpc(nextAnimations)
@@ -666,7 +681,7 @@ func battle(lane: int):
 ##		* Int, representing which Environment it came from
 ##		* null, the source is irrelevant
 ##		NOTE: the only important information "cause" gives is the location from where the attack animation should begin. (e.g. client knows to tell the 5th lane's environment to play its animation)
-##	type: one of these: "Card Draw", "Summon", "Attack", "Buff", "Debuff", "Kill", "Ability"
+##	type: one of these: "Conjure", "Card Draw", "Summon", "Attack", "Buff", "Debuff", "Kill", "Ability"
 ##	directAttack: true/false
 ##	duration: animation duration in ms
 ##	statChange: 
@@ -696,6 +711,9 @@ func execute(_targets: Array[Dictionary]):
 			#continue
 		
 		match i["type"]:
+			"Conjure":
+				print_debug("TARGETTING...", i.target)
+				handOverCard(i.target, i.statChange.card)
 			"Card Draw":
 				drawCard(i.target) # the target should be a player.
 			"Summon":
@@ -722,9 +740,16 @@ func execute(_targets: Array[Dictionary]):
 		animationTimer.wait_time = defaultAnimationRuntime_s
 	else:
 		# NOTE: convert ms to s
-		animationTimer.wait_time = maxDuration / 1000
+		animationTimer.wait_time = maxDuration / 1000.0
 	animationTimer.start()
-	
+
+
+## Called when someone has lost.
+## Loser (int): the player NUMBER of the loser.
+@rpc("authority", "call_local", "reliable")
+func gameEnd(loser: int):
+	gameLost.emit(loser)
+	print(loser, " has lost!")
 
 ## To ONLY be used on the server
 func animationFinished():
@@ -736,18 +761,31 @@ func animationFinished():
 #endregion
 
 #region Card Gain
+func gainCard(target: int, card: Dictionary):
+	pass
+
 ## The function that handles a player drawing a card from their deck.
 ## Only to be called on the server.
 func drawCard(target: int, deckIndex: int = -1):
-	# CRITICAL TODO pop cards as they come out
-	handOverCard(target, players[target].deck.cardContents[deckIndex].serialize())
+	if not multiplayer.is_server(): # Only to be called on the server.
+		return
+	
+	# draw and pop card
+	var card = players[target].deck.drawCard(deckIndex)
+	
+	if card == null: # loss condition: you draw all the cards from your deck.
+		gameEnd.rpc(target)
+	else:
+		handOverCard(target, card.serialize())
 
 ## The function that gets called when someone is to receive a card (not necessarily a draw card function)
 ## EVERY person will be notified that the card has been drawn. However, only the relevant player will know exactly what card has been drawn.
 ## This function has a special behaviour when the player's inventory is already full TODO @experimental
-## The target parameter refers to the player (ID) who has received the card.
+## The target parameter refers to the player (number) who has received the card.
 @rpc("authority", "call_local", "reliable")
 func handOverCard(target: int, _card: Dictionary):
+	if multiplayer.is_server():
+		print_debug("TARGET: ", target)
 	var card: Card = deserialize(_card)
 	var oldInventorySize: int = len(players[target].inventory)
 	
@@ -774,6 +812,7 @@ func handOverCard(target: int, _card: Dictionary):
 ## The target parameter refers to the player (ID) who has received the card.
 @rpc("authority", "call_local", "reliable")
 func handOverCards(target: int, _cards: Array[Dictionary]):
+	@warning_ignore("unused_variable")
 	var card: Card
 	var oldInventorySize: int = len(players[target].inventory)
 	var censoredCards = []
@@ -831,8 +870,39 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		location = [1 - location[0], location[1]]
 	
 	# WARNING hard-coded
-	print("Processing request...", "Correct Player? ", playerNumber == gameState.player, " Correct Game State? ", gameState.name == "Turn", " Card Exists in Inventory? ", inventoryIndex != -1, " Free Spot on Board? ", activeCards[location[0]][location[1]] == null, " Correct Location? ", originalLocation[0] == 1, " Player can afford to play the card? ", players[id].energy >= card.cost)
-	if playerNumber == gameState.player and gameState.name == "Turn" and inventoryIndex != -1 and activeCards[location[0]][location[1]] == null and originalLocation[0] == 1 and players[id].energy >= card.cost:
+	# Criteria for valid placement:
+	# their card is a entity, special, or environment
+	# * if the card is an entity, the placement spot should have a free space, and the player should play the card on their side of the board.
+	# * CRITICAL additional restrictions need to be added to cards in the future, especially specials
+	# Correct player and game state (it's their turn to play cards)
+	# the player actually has that card in their hand
+	# they have enough energy to place the card
+	var canPlace: bool = true # innocent until proven guilty
+	# deal with valid placement spots
+	if not _card.has("subtype"): # card is NOT an entity, special, or environment,
+		canPlace = false
+	elif _card.subtype == "Entity":
+		# make sure there is a free spot on the board AND the player has played the card on their side of the field
+		canPlace = canPlace and activeCards[location[0]][location[1]] == null and originalLocation[0] == 1
+	elif _card.subtype == "Special":
+		# CRITICAL make sure the move actually has an affect on a card
+		#canPlace
+		pass
+	elif _card.subtype == "Environment":
+		pass
+	else: # card is NOT an entity, special, or environment,
+		canPlace = false
+	
+	# correct player and game state
+	canPlace = canPlace and playerNumber == gameState.player and gameState.name == "Turn"
+	
+	# the player actually has that card in their hand
+	canPlace = canPlace and inventoryIndex != -1
+	
+	# they have enough energy to place the card
+	canPlace = canPlace and players[id].energy >= card.cost
+	
+	if canPlace:
 		# deduct energy
 		# NOTE: removing "as Array[int]" will cause unexpected behaviour. GDScript is interesting.
 		giveEnergy.rpc([id] as Array[int], -card.cost)

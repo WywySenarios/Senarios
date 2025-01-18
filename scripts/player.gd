@@ -6,7 +6,7 @@ class_name Player
 ## Non-optional variable containing the player ID. The default value (no explicitly assigned playerID) is -1.
 @export var id : int = -1
 ## Each player starts with 1 energy.
-@export var energy: int = 1
+@export var energy: int = 10
 @export var health: int = 20
 #@export var statusEffects: 
 @export var isTheirTurn: bool = false

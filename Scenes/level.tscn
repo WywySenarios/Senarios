@@ -189,5 +189,16 @@ mouse_filter = 2
 
 [node name="Card Holder" type="Node" parent="."]
 
+[node name="End Game Message" type="RichTextLabel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "You Win!"
+fit_content = true
+
 [connection signal="button_up" from="Player HUD/Next Turn Button" to="." method="requestTurnChange"]
 [connection signal="button_up" from="Card Draw Ready Button" to="." method="_on_button_button_up"]
