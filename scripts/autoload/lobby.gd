@@ -628,12 +628,12 @@ func battle(lane: int):
 			continue
 		else:
 			nextCardCard = nextCard.card
-			if nextCardCard == null or nextCardCard.moves[nextCardCard.currentMove] == null:
+			if nextCardCard == null or nextCardCard.move == null:
 				print("I'm skipping you because you are null or your moves are null!")
 				continue
 		
-		print_debug(nextCardCard.moves[nextCardCard.currentMove].getType())
-		match nextCardCard.moves[nextCardCard.currentMove].getType():
+		print_debug(nextCardCard.move.getType())
+		match nextCardCard.move.getType():
 			"AttackDirect":
 				# WARNING hard-coded
 				# cards currently always attack straight. More logic will be needed if they don't.
@@ -663,8 +663,8 @@ func battle(lane: int):
 		var temp = nextCard.execute(target)
 		nextItemToExecute = temp
 		# godot actually hates me because nextItemToExecute.is_empty() returns false positives. Bruh. I guess I don't desserve safety then.
-		#if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
-		nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
+		if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
+			nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
 	
 	# tell everyone to display animations and update card stats.
 	execute.rpc(nextAnimations)

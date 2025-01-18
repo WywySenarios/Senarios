@@ -6,7 +6,6 @@ class_name Special extends Card
 ## NOT SUPPORTED OR USED
 ## @experimental
 @export var sacrificial : String
-@export var move : Move
 ## NOT SUPPORTED OR USED
 @export var abilities : Array[Ability]
 

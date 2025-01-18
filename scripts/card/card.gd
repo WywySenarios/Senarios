@@ -12,6 +12,7 @@ class_name Card
 @export var cost : float = 0
 @export var type : Array[String]
 @export var image : CompressedTexture2D
+@export var move : Move = Move.new()
 
 func _init(arg: Variant = null):
 	match typeof(arg):
@@ -33,6 +34,7 @@ func serialize() -> Dictionary:
 			"generation": generation,
 			"cost": cost,
 			"type": type.duplicate() as Array[String],
+			"move": move.serialize(),
 			## Do NOT return the image because it is a compressed texture. The deserialization should be able to take care of textures.
 		}
 	}
@@ -72,5 +74,10 @@ func deserialize(_object: Dictionary) -> void:
 	
 	if _object.content.has("type") and _object.content.type != type:
 		type = _object.content.type
+		# TODO emit signal
+	
+	# WARNING TODO fix checking if the data is the same or not. I KNOW it doesn't work properly right now.
+	if _object.content.has("move"): #and _object.content.move != move:
+		move = Lobby.deserialize(_object.content.move)
 		# TODO emit signal
 #endregion

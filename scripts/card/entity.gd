@@ -11,10 +11,6 @@ var defenseBonus: int = 0 # linear---danage reduction after defense multiplier
 @export var aggressive : bool = true
 # TODO make this exportable 
 var statusEffects # status effects that currently apply to this card
-## NOT IMPLEMENTED YET
-@export var currentMove : int = 0 # current move that is selected (index of "moves" array)
-## NOT SUPPORTED YET
-@export var moves : Array[Move]
 
 ## Runtime variable used to store the serialized moves. DO NOT use this for any purposes outside of this class.
 var serializedMoves: Array[Dictionary]
@@ -48,7 +44,7 @@ func changeStats(statChange: Dictionary):
 
 ## Returns a Dictionary containing all the information that the Card's Move wants to change.
 func execute(target: Variant) -> Dictionary:
-	return moves[currentMove].execute(target, self)
+	return move.execute(target, self)
 
 # TODO (add status effects and remove status effects) functions
 
@@ -58,9 +54,6 @@ func execute(target: Variant) -> Dictionary:
 ## Does not modify the card's contents.
 ## @experimental
 func serialize() -> Dictionary:
-	serializedMoves = []
-	for i in moves:
-		serializedMoves.append(i.serialize())
 	
 	# TODO abilities
 	# TODO status effects
@@ -78,9 +71,6 @@ func serialize() -> Dictionary:
 			"aggressive": aggressive,
 			# CRITICAL this will not work as intended because this attribute depends on a custom class
 			"statusEffects": statusEffects,
-			"currentMove": currentMove,
-			# CRITICAL this will not work as intended because this attribute depends on a custom class
-			"moves": serializedMoves,
 			# CRITICAL this will not work as intended because this attribute depends on a custom class
 			"abilites": abilities.duplicate(),
 		},
@@ -138,21 +128,10 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("aggressive") and _object.content.aggressive != aggressive:
 		aggressive = _object.content.aggressive
 		# TODO emit signal
-	
-	if _object.content.has("currentMove") and _object.content.currentMove != currentMove:
-		currentMove = _object.content.currentMove
-		# TODO emit signal
 		
 	if _object.content.has("statusEffects") and _object.content.statusEffects != statusEffects:
 		statusEffects = _object.content.statusEffects
 		# TODO emit signal
-	
-	# TODO fix checking if the data is the same (serializedMoves is not always updated correctly)
-	if _object.content.has("moves") and serializedMoves != _object.content.moves:
-		moves = []
-		for i in _object.content.moves:
-			moves.append(Lobby.deserialize(i))
-		# TODO emit signals
 	
 	# TODO abilities
 	# TODO status effects
