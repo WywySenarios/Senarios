@@ -18,15 +18,18 @@ var serializedMoves: Array[Dictionary]
 
 var location = [-1, -1]
 
-#signal changeHealth(entity: Entity, oldHealth: int)
 ## @deprecated
 signal died(entity: Entity)
 
 ## Input is the stats that are being changed.
 ## Do NOT handle animation logic.
 func changeStats(statChange: Dictionary):
+	var oldStats = {}
 	if statChange.has("health"):
+		oldStats["health"] = health
 		health += statChange.health
+		changeHealth.emit(self, oldStats["health"])
+		print("HEALTH: ", health, " OLD HEALTH: ", oldStats["health"], " CARD ID: ", cardID)
 	
 	# TODO implement more things to change
 	if health <= 0:
@@ -40,7 +43,6 @@ func changeStats(statChange: Dictionary):
 			# use default animation duration
 			"statChange": {} # not relevant, so any Dictionary is OK.
 		})
-	pass
 
 ## Returns a Dictionary containing all the information that the Card's Move wants to change.
 func execute(target: Variant) -> Dictionary:

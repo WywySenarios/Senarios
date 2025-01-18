@@ -14,6 +14,9 @@ class_name Card
 @export var image : CompressedTexture2D
 @export var move : Move = Move.new()
 
+## Called when the card's health changes. This signal will obviously only apply to Entities.
+signal changeHealth(entity: Entity, oldHealth: int)
+
 func _init(arg: Variant = null):
 	match typeof(arg):
 		TYPE_DICTIONARY:

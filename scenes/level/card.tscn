@@ -72,7 +72,8 @@ libraries = {
 }
 
 [node name="Particles" type="Node2D" parent="."]
-scale = Vector2(-0.325278, 0.121505)
+rotation = -3.14159
+scale = Vector2(0.325278, -0.121505)
 
 [node name="placement" type="GPUParticles2D" parent="Particles"]
 scale = Vector2(2.5, 2.5)
@@ -107,27 +108,35 @@ offset_bottom = 240.0
 mouse_filter = 2
 expand_mode = 5
 
-[node name="card" type="Area2D" parent="Contents"]
+[node name="Attack Container" type="CenterContainer" parent="Contents"]
+visible = false
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 0.25
+anchor_bottom = 1.0
+offset_top = 240.0
+offset_right = 19.0
+offset_bottom = 263.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Contents/card"]
-position = Vector2(85, 119)
-shape = SubResource("RectangleShape2D_rdpcm")
+[node name="Attack" type="Label" parent="Contents/Attack Container"]
+layout_mode = 2
+text = "-1"
 
 [node name="HP Container" type="CenterContainer" parent="Contents"]
 visible = false
+anchors_preset = -1
+anchor_left = 0.75
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 127.5
+offset_top = 240.0
+offset_right = 146.5
+offset_bottom = 263.0
 
 [node name="HP" type="Label" parent="Contents/HP Container"]
-visible = false
 layout_mode = 2
-text = "10"
-
-[node name="Attack Container" type="CenterContainer" parent="Contents"]
-visible = false
-
-[node name="Attack" type="Label" parent="Contents/Attack Container"]
-visible = false
-layout_mode = 2
-text = "10"
+text = "-1"
 
 [node name="Label" type="Label" parent="Contents"]
 visible = false
@@ -140,6 +149,12 @@ visible = false
 offset_right = 50.0
 offset_bottom = 23.0
 text = "Attack"
+
+[node name="card" type="Area2D" parent="Contents"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Contents/card"]
+position = Vector2(85, 119)
+shape = SubResource("RectangleShape2D_rdpcm")
 
 [connection signal="gui_input" from="." to="." method="onGUIInput"]
 [connection signal="mouse_entered" from="." to="." method="onMouseEntered"]

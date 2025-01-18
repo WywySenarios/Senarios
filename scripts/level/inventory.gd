@@ -129,8 +129,13 @@ func addCards(_cards: Array[Card]):
 		# connect necessary signals
 		i.place.connect(gridNode._on_card_placement)
 	
-func removeCard(card: Node):
-	var index = cardNodes.find(card)
+func removeCard(card: Variant):
+	var index: int = -1
+	if isMyInventory:
+		index = cardNodes.find(card)
+	else:
+		index = 0
+	
 	if index != -1:
 		card.isInInventory = false
 		Draggables.deselectCard(card) # fallback function just to ensure good behaviour of the computer program

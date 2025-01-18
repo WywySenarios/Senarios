@@ -647,7 +647,7 @@ func battle(lane: int):
 					else:
 						target = 1
 				else:
-					target = [1 - i, lane] as Array[int]
+					target = [i, lane] as Array[int]
 			"Conjure":
 				# always tell the conjure card which player they belong to
 				# WARNING hard-coded
@@ -698,7 +698,8 @@ func execute(_targets: Array[Dictionary]):
 	nextAnimations = []
 	_targets = []
 	
-	print_debug("Processing the following animations: ", targets)
+	if multiplayer.is_server():
+		print_debug("Processing the following animations: ", targets)
 	
 	var maxDuration: int = 0
 	
@@ -711,8 +712,7 @@ func execute(_targets: Array[Dictionary]):
 			#continue
 		
 		match i["type"]:
-			"Conjure":
-				print_debug("TARGETTING...", i.target)
+			"Conjure": 
 				handOverCard(i.target, i.statChange.card)
 			"Card Draw":
 				drawCard(i.target) # the target should be a player.
@@ -784,8 +784,6 @@ func drawCard(target: int, deckIndex: int = -1):
 ## The target parameter refers to the player (number) who has received the card.
 @rpc("authority", "call_local", "reliable")
 func handOverCard(target: int, _card: Dictionary):
-	if multiplayer.is_server():
-		print_debug("TARGET: ", target)
 	var card: Card = deserialize(_card)
 	var oldInventorySize: int = len(players[target].inventory)
 	
@@ -938,3 +936,6 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	#pass
 #endregion
 #endregion
+
+func flipCoords(coords: Array[int]):
+	return [1 - coords[0], coords[1]]

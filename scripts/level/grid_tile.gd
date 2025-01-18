@@ -33,19 +33,26 @@ func animationSummon(target: Array[int], _card: Card) -> void:
 		
 		# whisper to the card what position it is on
 		if _card is Entity:
-			_card.location = self.get_meta("id")
+			_card.location = target
 		
 		# add the card to the gridtile
 		$Card.addCard(_card)
+		Lobby.activeCards[target[0]][target[1]] = $"Card"
 		
-		print("A card has been summoned at ", self.get_meta("id")) # TODO animations
+		print("A card has been summoned at ", target, " and I am: ", Lobby.myID) # TODO animations
 
 func animationAttack(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if Lobby.multiplayer.is_server():
+		target = Lobby.flipCoords(target)
+	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
 		print("A card at ", self.get_meta("id"), " has just been attacked!: ", statChange) # TODO animations, display HP change
 		$Card.card.changeStats(statChange)
 
 func animationBuff(target: Variant, source: Variant, statChange: Dictionary, directAttack: bool) -> void:
+	if Lobby.multiplayer.is_server():
+		target = Lobby.flipCoords(target)
+	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
 		print("The card at ", self.get_meta("id"), " has received a buff!") # TODO animations
 		$Card.card.changeStats(statChange)
@@ -56,15 +63,20 @@ func animationDebuff(target: Variant, source: Variant, statChange: Dictionary, d
 		$Card.card.changeStats(statChange)
 
 func animationKill(target: Variant) -> void:
-	var selfLocation = self.get_meta("id")
-	if typeof(target) == TYPE_ARRAY && target == selfLocation:
+	if Lobby.multiplayer.is_server():
+		target = Lobby.flipCoords(target)
+	
+	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
 		# TODO add an actual animation
-		print("Oh no! The card at ", selfLocation, " has just perished!") # TODO animations
+		print("Oh no! The card at ", target, " has just perished!") # TODO animations
 		$Card.hide()
 		$Card.card = null
-		Lobby.activeCards[selfLocation[0]][selfLocation[1]] = null # tell the server that this card is no longer existant
+		Lobby.activeCards[target[0]][target[1]] = null # tell the server that this card is no longer existant
 
 func animationAbility(target: Variant, ability: Ability) -> void:
+	if Lobby.multiplayer.is_server() and target is Array[int]:
+		target = Lobby.flipCoords(target)
+	
 	if typeof(target) == TYPE_ARRAY && target == self.get_meta("id"):
 		# TODO add an actual animation
 		print("The card at ", self.get_meta("id"), " has activated their ability!") # TODO animations

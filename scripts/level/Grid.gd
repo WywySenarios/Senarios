@@ -11,13 +11,13 @@ const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 
 # Not exported variables:
 ## Stores references to all gridtiles
-## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
+## Intends to ONLY store grid_tile nodes. Unfortunately, Godot does not support nested arrays with typing yet.
 ## Indexes should correspond EXACTLY with activeCards
 ## The grid tile's name is exactly the same as the index in this array, except separated by a comma (e.g. 0,0 or 3,1)
 var gridTiles: Array[Array] = []
 
 ## Stores references to all cards currently on the field.
-## Intends to ONLY store Node2Ds. Unfortunately, Godot does not support nested arrays with typing yet.
+## Intends to ONLY store Controls. Unfortunately, Godot does not support nested arrays with typing yet.
 ## Indexes should correspond EXACTLY with gridTiles
 @export var activeCards: Array[Array] = []
 ## Stores the reference to the gridtile
@@ -37,10 +37,14 @@ const cardScene: PackedScene = preload("res://scenes/level/card.tscn")
 func _ready():
 	# TODO don't hardcode this
 	activeCards.resize(2)
-	activeCards.fill([null, null, null, null, null])
+	#activeCards.fill([null, null, null, null, null])
+	activeCards[0] = [null, null, null, null, null]
+	activeCards[1] = [null, null, null, null, null]
 	
 	gridTiles.resize(2)
-	gridTiles.fill([null, null, null, null, null])
+	#gridTiles.fill([null, null, null, null, null])
+	gridTiles[0] = [null, null, null, null, null]
+	gridTiles[1] = [null, null, null, null, null]
 	
 	var metadata
 	for i in get_children():
@@ -139,50 +143,27 @@ func _on_card_placement(card: Control) -> void:
 ## Called when the server approves a card placement request
 ## @experimental
 func approvedCardPlacementRequest(id: int, _card: Dictionary, location: Array[int]) -> void:
-	var card: Control
-	var gridTile: Control
+	var gridTile: Control = gridTiles[location[0]][location[1]]
+	var card: Card = Lobby.deserialize(_card)
 	if id == Lobby.myID: # if this card is mine,
-		card = lastCardPlacementRequest.card
-		
-		gridTile = lastCardPlacementRequest.gridTile
-		# do not add the card because the server must have already emitted a summon signal that would have already trigger that.
+		var inventoryCardNode = lastCardPlacementRequest.card
 		
 		# randomize the animation time. It just adds a tiny bit more flavor!
 		var animationTime = utilityRNG.randf_range(0.15, 0.35)
 		
 		var cardPositionTween = get_tree().create_tween()
-		cardPositionTween.tween_property(card, "global_position", gridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
+		cardPositionTween.tween_property(inventoryCardNode, "global_position", gridTile.global_position, animationTime) # .set_ease(Tween.EASE_OUT)
 		# rotate one revolution (1 rev = 2 pi)
 		#get_tree().create_tween().tween_property(card, "global_rotation", (2 * PI) * 1, animationTime) # .set_ease(Tween.EASE_OUT)
-		cardPositionTween.tween_property(card, "scale", Vector2(0, 0), animationTime)
-		cardPositionTween.tween_callback(card.queue_free)
-		# Register card in the correct position
-		# note: a grid tile's "id" metadata has y, x coordinates. They are the exact indexes of the array, so that's nice.
-		var index = gridTile.get_meta("id")
-		activeCards[index[0]][index[1]] = card
-		# WARNING this doesn't seem like useful information anymore
-		card.set_meta("locationIndex", [index[0], index[1]])
+		cardPositionTween.tween_property(inventoryCardNode, "scale", Vector2(0, 0), animationTime)
+		cardPositionTween.tween_callback(inventoryCardNode.queue_free)
 		
 		# remove the card from the inventory
-		card.get_parent().removeCard(card)
-	else: # TODO this is not my card,
-		# create the opponent's card
-		card = cardScene.instantiate()
-		card.card = Lobby.deserialize(_card)
-		# CRITICAL check variable change order
-		card.faceup = true
-		
-		gridTile = gridTiles[location[0]][location[1]]
-		
-		# TODO animations
-		
+		inventoryCardNode.get_parent().removeCard(inventoryCardNode)
+	else: # this is not my card,
 		# remove a card from the opponent's inventory (their inventory size decreased)
-		var cardToRemove = Global.emptyCardScene
-		cardToRemove.isInInventory = false
-		# WARNING hard-coded
-		get_parent().get_node("Inventories/Far Inventory").removeCard(cardToRemove)
-		
-		activeCards[location[0]][location[1]] = card
+		get_parent().get_node("Inventories/Far Inventory").removeCard(_card)
+	#gridTile.animationSummon(location, card)
 
 ## Called when the server disapproves your card placement request
 func disapprovedCardPlacementRequest():
@@ -190,7 +171,7 @@ func disapprovedCardPlacementRequest():
 	lastCardPlacementRequest = null
 	# TODO
 
-func destroyCard(target: Variant):
-	# if we are destroying a grid tile's card,
-	if target is Array:
-		activeCards[target[0]][target[1]] = null
+#func destroyCard(target: Variant):
+	## if we are destroying a grid tile's card,
+	#if target is Array:
+		#activeCards[target[0]][target[1]] = null
