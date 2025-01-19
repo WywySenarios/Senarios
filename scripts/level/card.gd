@@ -149,7 +149,7 @@ func onGUIInput(event: InputEvent) -> void:
 
 func onMouseEntered() -> void:
 	# if it's my card and it's in my inventory,
-	if isInInventory and faceup:
+	if isInInventory and faceup and not Input.is_action_pressed("click"):
 		Draggables.selectCard(self)
 		$AnimationPlayer.play("Select")
 	
@@ -158,7 +158,7 @@ func onMouseEntered() -> void:
 
 func onMouseExited() -> void:
 	# if it's my card and it's in my inventory and I'm not clickign right now,
-	if isInInventory: # and not Input.is_action_pressed("click")
+	if isInInventory and faceup and not Input.is_action_pressed("click"): # and not Input.is_action_pressed("click")
 		Draggables.deselectCard(self)
 		$AnimationPlayer.play("Deselect")
 	
