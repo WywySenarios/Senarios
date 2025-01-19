@@ -16,7 +16,6 @@ var serializedMoves: Array[Dictionary]
 
 var location = [-1, -1]
 
-## @deprecated
 signal died(entity: Entity)
 
 ## Input is the stats that are being changed.
@@ -52,7 +51,6 @@ func execute(target: Variant) -> Dictionary:
 ## TODO test this function
 ## Transform this card's data into a Dictionary.
 ## Does not modify the card's contents.
-## @experimental
 func serialize() -> Dictionary:
 	
 	# TODO abilities
@@ -83,7 +81,6 @@ func serialize() -> Dictionary:
 ## TODO testing, signals
 ## Deserialize the dictionary and inject its data into the card this was called on.
 ## Calls updates only when there is a change in the values or references
-## @experimental
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
 	if not _object.has("type") or _object.type != "Card" or not _object.has("content"):

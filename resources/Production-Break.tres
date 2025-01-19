@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="Special" load_steps=9 format=3 uid="uid://bt8g5mf3h4u6n"]
+
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_eaa6w"]
+[ext_resource type="Script" path="res://scripts/card/moves/BonusAttack.gd" id="2_gwmys"]
+[ext_resource type="Script" path="res://scripts/card/special.gd" id="2_qj6gc"]
+[ext_resource type="Script" path="res://scripts/card/move.gd" id="3_kjsq8"]
+[ext_resource type="Script" path="res://scripts/card/moves/MoveAll.gd" id="4_nkpln"]
+
+[sub_resource type="Resource" id="Resource_r832q"]
+script = ExtResource("2_gwmys")
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[sub_resource type="Resource" id="Resource_8aqes"]
+script = ExtResource("3_kjsq8")
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[sub_resource type="Resource" id="Resource_8dq0n"]
+script = ExtResource("4_nkpln")
+MoveFriendly = SubResource("Resource_r832q")
+MoveHostile = SubResource("Resource_8aqes")
+criteria = {
+"content": {},
+"type": "All"
+}
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[resource]
+script = ExtResource("2_qj6gc")
+charges = 1
+chargeRegen = 0
+sacrificial = ""
+abilities = Array[ExtResource("1_eaa6w")]([])
+name = "N/A"
+cardID = "Production-Break"
+cardType = ""
+generation = 0
+cost = 2
+type = Array[String]([])
+move = SubResource("Resource_8dq0n")

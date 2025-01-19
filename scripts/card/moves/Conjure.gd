@@ -12,7 +12,6 @@ class_name Conjure extends Move
 @export var conjureType: Array[String] = [""]
 #@export var cardModifications: Dictionary = {}
 
-## @deprecated
 func getType() -> String:
 	return "Conjure"
 
@@ -38,10 +37,8 @@ func execute(_target: Variant, attacker: Card) -> Dictionary:
 		}
 	}
 
-## TODO test this function
 ## Transform this card's data into a Dictionary.
 ## Does not modify the card's contents.
-## @experimental
 func serialize() -> Dictionary:
 	var output: Dictionary = {
 		"subtype": "Conjure",
@@ -57,10 +54,8 @@ func serialize() -> Dictionary:
 	output.content.merge(superClassSerializaiton.content, false)
 	return output
 
-## TODO testing, signals
 ## Deserialize the dictionary and inject its data into the card this was called on.
 ## Calls updates only when there is a change in the values or references
-## @experimental
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
 	if not _object.has("type") or _object.type != "Move" or not _object.has("content"):

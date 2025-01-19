@@ -69,6 +69,8 @@ var gameRound: int = 1
 @warning_ignore("unused_parameter")
 var gridTiles: Array[Array]
 var activeCards: Array[Array]
+const gridHeight: int = 2
+const gridLength: int = 5
 #endregion
 
 #region Card Draw Phase Signals
@@ -340,8 +342,12 @@ func deserialize(_object: Dictionary) -> Variant:
 				object = Conjure.new()
 			"MoveLane":
 				object = MoveLane.new()
+			"MoveAll":
+				object = MoveAll.new()
 			"Heal":
 				object = Heal.new()
+			"BonusAttack":
+				object = BonusAttack.new()
 			_:
 				return null
 	else:
@@ -659,7 +665,7 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 	
 	match moveName:
 				"AttackDirect":
-					if y == -1:
+					if y == -1 or lane == -1:
 						return null
 					# WARNING hard-coded
 					# cards currently always attack straight. More logic will be needed if they don't.
@@ -684,6 +690,17 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 					if activeCards[1 - y][lane] != null:
 						output[1] = [1 - y, lane] as Array[int]
 					return output
+				"MoveAll":
+					if y == -1:
+						return null
+					else:
+						@warning_ignore("integer_division")
+						return y < gridHeight / 2
+				"BonusAttack":
+					if y == -1 or lane == -1:
+						return null
+					else:
+						return [y, lane] as Array[int]
 				"Conjure":
 					# always tell the conjure card which player they belong to
 					# WARNING hard-coded
@@ -989,9 +1006,11 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 ## Flips the y-coordinate while keeping the x coordinate constant.
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
 func flipCoords(coords: Array[int]):
-	return [1 - coords[0], coords[1]]
+	@warning_ignore("integer_division")
+	return [gridHeight / 2 - coords[0], coords[1]]
 
 ## Flips the y-coordinate.
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
 func flipCoord(coord: int):
-	return 1 - coord
+	@warning_ignore("integer_division")
+	return gridHeight / 2 - coord

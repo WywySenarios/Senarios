@@ -17,6 +17,8 @@ func execute(_target: Variant, attacker: Card) -> Array[Dictionary]:
 	print_debug("Move Lane executed", output)
 	return output
 	
+## Transform this card's data into a Dictionary.
+## Does not modify the card's contents.
 func serialize() -> Dictionary:
 	var output: Dictionary = {
 		"subtype": "MoveLane",
@@ -32,6 +34,8 @@ func serialize() -> Dictionary:
 	output.content.merge(superClassSerialization.content, false)
 	return output
 
+## Deserialize the dictionary and inject its data into the card this was called on.
+## Calls updates only when there is a change in the values or references
 func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("MoveFriendly"): # do not bother checking for equality due to runtime
 		MoveFriendly = Lobby.deserialize(_object.content.MoveFriendly)

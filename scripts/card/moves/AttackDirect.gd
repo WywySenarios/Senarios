@@ -48,10 +48,8 @@ func execute(_target: Variant, attacker: Card) -> Dictionary:
 	else:
 		return {}
 
-## TODO test this function
 ## Transform this card's data into a Dictionary.
 ## Does not modify the card's contents.
-## @experimental
 func serialize() -> Dictionary:
 	var output: Dictionary = {
 		"subtype": "AttackDirect",
@@ -66,10 +64,8 @@ func serialize() -> Dictionary:
 	output.content.merge(superClassSerializaiton.content, false)
 	return output
 
-## TODO testing, signals
 ## Deserialize the dictionary and inject its data into the card this was called on.
 ## Calls updates only when there is a change in the values or references
-## @experimental
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)
 	if not _object.has("type") or _object.type != "Move" or not _object.has("content"):
