@@ -23,6 +23,6 @@ name = "N/A"
 cardID = "Gen-4-Stickman-Factory"
 cardType = ""
 generation = 4
-cost = 1.0
+cost = 1
 type = Array[String]([])
 move = SubResource("Resource_i80rw")

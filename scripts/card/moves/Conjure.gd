@@ -12,6 +12,7 @@ class_name Conjure extends Move
 @export var conjureType: Array[String] = [""]
 #@export var cardModifications: Dictionary = {}
 
+## @deprecated
 func getType() -> String:
 	return "Conjure"
 

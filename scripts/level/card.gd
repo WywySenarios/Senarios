@@ -172,20 +172,20 @@ func execute(target: Variant) -> Dictionary:
 
 #region Stat Updates
 ## Called when the HP of the child card should be updated (does not necessarily change the value)
-func changeHealth(card: Entity = self.card, oldHealth: int = -1) -> void:
+func changeHealth(_card: Entity = card, oldHealth: int = -1) -> void:
 	if faceup:
 		$"Contents/HP Container".show()
-		$"Contents/HP Container/HP".text = str(card.health)
+		$"Contents/HP Container/HP".text = str(_card.health)
 	else:
 		$"Contents/HP Container".hide()
 
 ## Called when the attack of the chilid card should be updated (does not necessarily change the value)
-func changeAttack(card: Card = self.card, oldAttack: int = -1) -> void:
+func changeAttack(_card: Card = card, oldAttack: int = -1) -> void:
 	if faceup:
 		match card.move.getType():
 			"AttackDirect":
 				$"Contents/Attack Container".show()
-				$"Contents/Attack Container/Attack".text = str(card.move.base_damage)
+				$"Contents/Attack Container/Attack".text = str(_card.move.base_damage)
 			_:
 				$"Contents/Attack Container".hide()
 	else:

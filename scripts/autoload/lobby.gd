@@ -202,7 +202,10 @@ func sendPlayerName(playerName: String, id: int, signalToFire: Signal = player_i
 		players[id].playerNumber = len(players)
 		playerNumbers[id] = players[id].playerNumber
 		# TODO change from hard coded deck
-		players[id].deck = load("res://data/decks/Default Stickman.tres")
+		if id == 1:
+			players[id].deck = load("res://data/decks/Default Wywy.tres")
+		else:
+			players[id].deck = load("res://data/decks/Default Stickman.tres")
 		players[id].deck.ready()
 		players[id].ready()
 	
@@ -327,10 +330,18 @@ func deserialize(_object: Dictionary) -> Variant:
 		match _object.subtype:
 			"Entity":
 				object = Entity.new()
+			"Special":
+				object = Special.new()
+			#"Environment":
+				#object = Environment.new()
 			"AttackDirect":
 				object = AttackDirect.new()
 			"Conjure":
 				object = Conjure.new()
+			"MoveLane":
+				object = MoveLane.new()
+			"Heal":
+				object = Heal.new()
 			_:
 				return null
 	else:
@@ -612,61 +623,79 @@ func battle(lane: int):
 	if multiplayer.is_server():
 		# have all (both) cards attack each other at the same time
 		var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
-		var target = null
 		var nextCard = null
 		var nextCardCard = null
-		var nextItemToExecute: Dictionary = {}
 		# WARNING hard-coded
 		for i in range(0, 2):
 			nextCard = cardsInLane[i]
 			
 			# only execute moves on cards that actually exist.
 			if nextCard == null:
-				print("skipping card!", i)
+				print("Skipping card!: ", i)
 				continue
 			else:
 				nextCardCard = nextCard.card
 				if nextCardCard == null or nextCardCard.move == null:
-					print("I'm skipping you because you are null or your moves are null!")
+					print("Skipping card!: ", i)
 					continue
 			
-			print_debug(nextCardCard.move.getType())
-			match nextCardCard.move.getType():
+			addAnimations(nextCard.execute(findTarget(nextCardCard.move, i, lane)))
+		
+		# tell everyone to display animations and update card stats.
+		execute.rpc(nextAnimations)
+
+## Input the [param move] and get what it wants to target.
+## You can also input the y-coordinate the attacker is at.
+## You can also input the [param lane] the card should target.
+func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
+	var moveName: String
+	if move is String:
+		moveName = move
+	elif move is Move:
+		moveName = move.getType()
+	else:
+		print_debug("The given Card does not have a valid move.")
+		return null
+	
+	match moveName:
 				"AttackDirect":
+					if y == -1:
+						return null
 					# WARNING hard-coded
 					# cards currently always attack straight. More logic will be needed if they don't.
 					# TODO custom targetting function that can be called by any move or ability
-					if cardsInLane[1 - i] == null: # if there is no card to block the attack,
+					if activeCards[1 - y][lane] == null: # if there is no card to block the attack,
 						# attack the opposing player.
 						# remember that i = 0 means that a card is related to player 1.
 						# WARNING hard-coded
-						if i == 0: # if the card is player 2's card,
-							target = 1
+						if y == 0: # if the card is player 2's card,
+							return 1
 						else:
-							target = 2
+							return 2
 					else:
-						# IDK why, but this works.
-						target = [1 - i, lane] as Array[int]
+						# attack the hostile card in the lane
+						return [1 - y, lane] as Array[int]
+				"MoveLane":
+					# pass in the [friendly card's coords, hostile card's coords]
+					# check if the card actually exists. Place null if it doesn't.
+					var output = [null, null]
+					if activeCards[y][lane] != null:
+						output[0] = [y, lane] as Array[int]
+					if activeCards[1 - y][lane] != null:
+						output[1] = [1 - y, lane] as Array[int]
+					return output
 				"Conjure":
 					# always tell the conjure card which player they belong to
 					# WARNING hard-coded
 					# index 1 -> player 1
 					# index 2 -> player 2
-					if i == 1:
-						target = 1
+					if y == 1:
+						return 1
 					else:
-						target = playerNumbers.find_key(2)
+						return playerNumbers.find_key(2)
 				_:
-					print_debug("Card at lane " + str(lane) + " does not have a move.")
-			
-			var temp = nextCard.execute(target)
-			nextItemToExecute = temp
-			# godot actually hates me because nextItemToExecute.is_empty() returns false positives. Bruh. I guess I don't desserve safety then.
-			if not nextItemToExecute.is_empty(): # if there are stats to update or animations to play,
-				nextAnimations.append(nextItemToExecute.merged({"duration": defaultAnimationRuntime_ms}, false))
-		
-		# tell everyone to display animations and update card stats.
-		execute.rpc(nextAnimations)
+					print_debug("The given Card has an invalid move type.")
+					return null
 
 # TODO make description useful and informative
 ## Called by the server to indicate that stats for Entities and/or Players have changed.
@@ -691,7 +720,7 @@ func battle(lane: int):
 ## NOTE: the order of the targets array should not matter.
 ## NOTE: there is a CRITICAL bug with the target parameter somewhere in the code
 @rpc("authority", "call_local", "reliable")
-func execute(_targets: Array[Dictionary]):
+func execute(_targets: Array[Dictionary] = nextAnimations):
 	# clear the animations but keep a duplicate
 	var targets: Array[Dictionary] = _targets.duplicate()
 	nextAnimations = []
@@ -751,6 +780,16 @@ func execute(_targets: Array[Dictionary]):
 func gameEnd(loser: int):
 	gameLost.emit(loser)
 	print(loser, " has lost!")
+
+## Add animations to the queue.
+func addAnimations(animations: Variant):
+	if animations is Array:
+		for i in animations:
+			if not i.is_empty():
+				nextAnimations.append(i)
+	elif animations is Dictionary:
+		if not animations.is_empty():
+			nextAnimations.append(animations)
 
 ## To ONLY be used on the server
 func animationFinished():
@@ -886,15 +925,14 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		canPlace = canPlace and activeCards[location[0]][location[1]] == null and originalLocation[0] == 1
 	elif _card.subtype == "Special":
 		# CRITICAL make sure the move actually has an affect on a card
-		#canPlace
-		pass
+		canPlace = canPlace and findTarget(_card.content.move.subtype, location[0], location[1]) != null
 	elif _card.subtype == "Environment":
 		pass
 	else: # card is NOT an entity, special, or environment,
 		canPlace = false
 	
 	# correct player and game state
-	canPlace = canPlace and playerNumber == gameState.player and gameState.name == "Turn"
+	canPlace = canPlace and gameState.has("player") and playerNumber == gameState.player and gameState.name == "Turn"
 	
 	# the player actually has that card in their hand
 	canPlace = canPlace and inventoryIndex != -1
@@ -913,6 +951,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 				approveCardPlacement.rpc_id(i, id, _card, location)
 			else:
 				if id == 1: # if the host placed the card,
+					# TODO avoid hard-code
 					approveCardPlacement.rpc_id(i, id, _card, [1 - location[0], location[1]] as Array[int])
 				else:
 					approveCardPlacement.rpc_id(i, id, _card, originalLocation)
@@ -928,13 +967,18 @@ func disapproveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 @rpc("authority", "call_local", "reliable")
 func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	# we can assume the card has the subtype attribute because the server has approved the card placement request.
+	levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
 	match _card.subtype:
 		"Entity":
-			# WARNING: hard-coded
-			levelNode.get_node("Grid").approvedCardPlacementRequest(id, _card, location)
 			summon.emit(location, deserialize(_card))
 		"Special":
-			pass
+			if multiplayer.is_server():
+				# process move logic
+				var special = deserialize(_card)
+				addAnimations(special.execute(findTarget(special.move, location[0], location[1])))
+				
+				# Play animations
+				execute.rpc(nextAnimations)
 
 #@rpc("authority", "call_local", "reliable")
 #func changeEnvironment(newEnvironment: Dictionary, lane: int):
@@ -942,5 +986,12 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 #endregion
 #endregion
 
+## Flips the y-coordinate while keeping the x coordinate constant.
+## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
 func flipCoords(coords: Array[int]):
 	return [1 - coords[0], coords[1]]
+
+## Flips the y-coordinate.
+## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
+func flipCoord(coord: int):
+	return 1 - coord

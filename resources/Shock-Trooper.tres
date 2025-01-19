@@ -1,6 +1,5 @@
-[gd_resource type="Resource" script_class="Entity" load_steps=6 format=3 uid="uid://x0vgeyriq0q5"]
+[gd_resource type="Resource" script_class="Entity" load_steps=5 format=3 uid="uid://x0vgeyriq0q5"]
 
-[ext_resource type="Texture2D" uid="uid://48mmm7bhxku2" path="res://assets/cards/card_images/cardImage-Shock-Trooper.png" id="1_ix26v"]
 [ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_twx31"]
 [ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_w1aep"]
 [ext_resource type="Script" path="res://scripts/card/moves/AttackDirect.gd" id="3_sixug"]
@@ -23,7 +22,6 @@ name = "Shock Trooper"
 cardID = "Shock-Trooper"
 cardType = ""
 generation = 4
-cost = 0.0
+cost = 1
 type = Array[String]([])
-image = ExtResource("1_ix26v")
 move = SubResource("Resource_v5jjn")

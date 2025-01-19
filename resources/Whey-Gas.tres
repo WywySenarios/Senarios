@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="Special" load_steps=9 format=3 uid="uid://n6hcmfq5xrro"]
+
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_xfhn6"]
+[ext_resource type="Script" path="res://scripts/card/moves/AttackDirect.gd" id="2_bjksf"]
+[ext_resource type="Script" path="res://scripts/card/moves/Heal.gd" id="2_jlo0r"]
+[ext_resource type="Script" path="res://scripts/card/special.gd" id="2_o8haw"]
+[ext_resource type="Script" path="res://scripts/card/moves/MoveLane.gd" id="3_rq5j8"]
+
+[sub_resource type="Resource" id="Resource_k0cqi"]
+script = ExtResource("2_jlo0r")
+base_heals = 1
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[sub_resource type="Resource" id="Resource_xau6j"]
+script = ExtResource("2_bjksf")
+base_damage = 1
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[sub_resource type="Resource" id="Resource_q8mku"]
+script = ExtResource("3_rq5j8")
+MoveFriendly = SubResource("Resource_k0cqi")
+MoveHostile = SubResource("Resource_xau6j")
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[resource]
+script = ExtResource("2_o8haw")
+charges = 1
+chargeRegen = 0
+sacrificial = ""
+abilities = Array[ExtResource("1_xfhn6")]([])
+name = "N/A"
+cardID = "Whey-Gas"
+cardType = ""
+generation = 4
+cost = 2
+type = Array[String]([])
+move = SubResource("Resource_q8mku")

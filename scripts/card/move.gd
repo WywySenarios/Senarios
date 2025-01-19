@@ -1,4 +1,5 @@
 class_name Move extends Resource
+## Generic Move class. Is not intended to be used directly. Please use child classes like [AttackDirect] and [MoveLane]
 
 @export var name : String = "N/A"
 @export var tooltip : String = ""
@@ -13,7 +14,7 @@ func getType() -> String:
 	return "Move"
 
 ## Returns a Dictionary containing all the information that this Move wants to change.
-func execute(target: Variant, parent: Card) -> Dictionary:
+func execute(target: Variant, parent: Card) -> Variant:
 	return {}
 
 ## TODO test this function

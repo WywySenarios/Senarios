@@ -22,6 +22,6 @@ name = "Giant Stickman"
 cardID = "Giant-Stickman"
 cardType = ""
 generation = 1
-cost = 4.0
+cost = 4
 type = Array[String]([])
 move = SubResource("Resource_x7h4p")

@@ -3,8 +3,6 @@ class_name Entity extends Card
 @export var health : int = 1
 @export var hpr : int = 0
 @export var shield : int = 0
-var attackMultiplier: float = 1 # multiplicative
-var attackBonus: int = 0 # linear---added after attack multiplier
 
 var defenseMultiplier: float = 1 # divides damage done to the current card
 var defenseBonus: int = 0 # linear---danage reduction after defense multiplier
@@ -29,7 +27,7 @@ func changeStats(statChange: Dictionary):
 		oldStats["health"] = health
 		health += statChange.health
 		changeHealth.emit(self, oldStats["health"])
-		print("HEALTH: ", health, " OLD HEALTH: ", oldStats["health"], " CARD ID: ", cardID)
+		#print("HEALTH: ", health, " OLD HEALTH: ", oldStats["health"], " CARD ID: ", cardID, " STAT CHANGE: ", statChange.health)
 	
 	# TODO implement more things to change
 	if health <= 0:
@@ -66,8 +64,6 @@ func serialize() -> Dictionary:
 			"health": health,
 			"hpr": hpr,
 			"shield": shield,
-			"attackMultiplier": attackMultiplier,
-			"attackBonus": attackBonus,
 			"defenseMultiplier": defenseMultiplier,
 			"defenseBonus": defenseBonus,
 			"aggressive": aggressive,
@@ -111,16 +107,8 @@ func deserialize(_object: Dictionary) -> void:
 		shield = _object.content.shield
 		# TODO emit signal
 	
-	if _object.content.has("attackMultiplier") and _object.content.attackMultiplier != attackMultiplier:
-		attackMultiplier = _object.content.attackMultiplier
-		# TODO emit signal
-	
-	if _object.content.has("attackBonus") and _object.content.attackBonus != attackBonus:
-		attackBonus = _object.content.attackBonus
-		# TODO emit signal
-	
 	if _object.content.has("defenseMultiplier") and _object.content.defenseMultiplier != defenseMultiplier:
-		attackBonus = _object.content.defenseMultiplier
+		defenseMultiplier = _object.content.defenseMultiplier
 		# TODO emit signal
 	
 	if _object.content.has("defenseBonus") and _object.content.defenseBonus != defenseBonus:

@@ -1,5 +1,5 @@
-extends Resource
-class_name Card
+class_name Card extends Resource
+## Generic Card Class. Not intended to be used on its own. Please use a child class like [Entity], [Special] or [s][Environment][/s].
 
 # TODO stat change signals (do NOT contact player, just directly route those signals to the card scenes for them to deal with animations).
 
@@ -9,12 +9,18 @@ class_name Card
 @export var cardID: String = ""
 @export var cardType : String = ""
 @export_range(1, 6) var generation : int
-@export var cost : float = 0
+@export var cost : int = 0
 @export var type : Array[String]
 var image : CompressedTexture2D
 @export var move : Move = Move.new()
 
+## Multiplicative attack bonus.
+var attackMultiplier: float = 1
+## Linear attack bonus, added after multiplicative bonus.
+var attackBonus: int = 0
+
 ## Called when the card's health changes. This signal will obviously only apply to Entities.
+@warning_ignore("unused_signal") # the signal IS used by Entities!
 signal changeHealth(entity: Entity, oldHealth: int)
 
 func _init(arg: Variant = null):
@@ -37,6 +43,8 @@ func serialize() -> Dictionary:
 			"generation": generation,
 			"cost": cost,
 			"type": type.duplicate() as Array[String],
+			"attackMultiplier": attackMultiplier,
+			"attackBonus": attackBonus,
 			"move": move.serialize(),
 			## Do NOT return the image because it is a compressed texture. The deserialization should be able to take care of textures.
 		}
@@ -77,6 +85,14 @@ func deserialize(_object: Dictionary) -> void:
 	
 	if _object.content.has("type") and _object.content.type != type:
 		type = _object.content.type
+		# TODO emit signal
+	
+	if _object.content.has("attackMultiplier") and _object.content.attackMultiplier != attackMultiplier:
+		attackMultiplier = _object.content.attackMultiplier
+		# TODO emit signal
+		
+	if _object.content.has("attackBonus") and _object.content.attackBonus != attackBonus:
+		attackBonus = _object.content.attackBonus
 		# TODO emit signal
 	
 	# WARNING TODO fix checking if the data is the same or not. I KNOW it doesn't work properly right now.
