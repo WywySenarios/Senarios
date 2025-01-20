@@ -13,6 +13,8 @@ class_name Card extends Resource
 @export var type : Array[String]
 var image : CompressedTexture2D
 @export var move : Move = Move.new()
+@export var abilities : Array[Ability]
+@export var placementAbility: Ability
 
 ## Multiplicative attack bonus.
 var attackMultiplier: float = 1
@@ -34,7 +36,7 @@ func _init(arg: Variant = null):
 ## Does not modify the card's contents.
 ## @experimental
 func serialize() -> Dictionary:
-	return {
+	var output: Dictionary = {
 		"type": "Card",
 		"content": {
 			"name": name,
@@ -45,10 +47,26 @@ func serialize() -> Dictionary:
 			"type": type.duplicate() as Array[String],
 			"attackMultiplier": attackMultiplier,
 			"attackBonus": attackBonus,
-			"move": move.serialize(),
 			## Do NOT return the image because it is a compressed texture. The deserialization should be able to take care of textures.
 		}
 	}
+	
+	if move != null:
+		output.content["move"] = move.serialize()
+	else:
+		print_debug("Uh oh! move is null!")
+	
+	var serializedAbilities: Array[Dictionary] = []
+	for i in abilities:
+		serializedAbilities.append(i.serialize())
+	
+	if not serializedAbilities.is_empty():
+		output.content["abilities"] = serializedAbilities
+	
+	if placementAbility != null:
+		output.content["placementAbility"] = placementAbility.serialize()
+	
+	return output
 
 ## TODO testing, signals
 ## Deserialize the dictionary and inject its data into the card this was called on.
@@ -98,5 +116,16 @@ func deserialize(_object: Dictionary) -> void:
 	# WARNING TODO fix checking if the data is the same or not. I KNOW it doesn't work properly right now.
 	if _object.content.has("move"): #and _object.content.move != move:
 		move = Lobby.deserialize(_object.content.move)
+		# TODO emit signal
+	
+	# TODO check for equality
+	if _object.content.has("abilities"): # avoid checking for equality due to runtime
+		abilities = []
+		for i in _object.content.abilities:
+			abilities.append(Lobby.deserialize(i))
+	
+	# WARNING TODO fix checking if the data is the same or not. I KNOW it doesn't work properly right now.
+	if _object.content.has("placementAbility"): #and _object.content.move != move:
+		placementAbility = Lobby.deserialize(_object.content.placementAbility)
 		# TODO emit signal
 #endregion

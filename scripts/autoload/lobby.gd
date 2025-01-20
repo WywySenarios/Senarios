@@ -64,6 +64,14 @@ var gameState: Dictionary = {
 	"player": -1
 }
 
+## Stores the current prompt being asked.
+##	type (String): "target"
+##	player (int): player number of the player to ask
+##	message (String): message to tell the player.
+##	matchCardID (String)?: must match the specified Card ID
+##	side (Variant)?: "Hostile", "Friendly", null
+var currentPrompt: Dictionary = {}
+
 var gameRound: int = 1
 
 @warning_ignore("unused_parameter")
@@ -104,6 +112,10 @@ signal playerHealthUpdated(targets: Array[int], oldHealth: Array[int], wasSet: b
 ## Was set differentiates whether or not the energy was set (true) or added on and resulted in the final amount (false)
 signal playerEnergyUpdated(targets: Array[int], oldEnergy: Array[int], wasSet: bool)
 signal gameStateChange(oldGameState: Dictionary)
+
+## Emitted when a valid response to a prompt has been given.
+signal promptResponse(response: Variant)
+
 ## Loser (int): The loser's player NUMBER
 signal gameLost(loser: int)
 #endregion
@@ -148,6 +160,8 @@ const defaultAnimationRuntime_s: float = defaultAnimationRuntime_ms / 1000.0
 
 ## Stores the next animations to be played
 var nextAnimations: Array[Dictionary] = []
+## A queue containing [location of ability trigger, Card that caused the ability trigger, animation to execute]
+var nextAbilities: Array[Array] = []
 #endregion
 #endregion
 
@@ -314,7 +328,7 @@ func preGame():
 		approveGameStateChange.rpc({"name": "Card Draw"})
 #endregion
 
-#region Deserialization
+#region Utility
 ## This deserializes certain objects from a dictionary.
 ## This is intended to be used in combination with RPCs.
 ## Currently supports:
@@ -366,6 +380,18 @@ func deserialize(_object: Dictionary) -> Variant:
 	# request the object to deserialize the data.
 	object.deserialize(_object)
 	return object
+
+## Flips the y-coordinate while keeping the x coordinate constant.
+## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
+func flipCoords(coords: Array[int]):
+	@warning_ignore("integer_division")
+	return [gridHeight / 2 - coords[0], coords[1]]
+
+## Flips the y-coordinate.
+## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
+func flipCoord(coord: int):
+	@warning_ignore("integer_division")
+	return gridHeight / 2 - coord
 #endregion
 
 #region Game Logic & Update Pushes
@@ -453,6 +479,7 @@ func changeGameState(id: int):
 					approveGameStateChange.rpc({"name": "Turn", "player": 1})
 			"Turn":
 				# if the right player requests a game state change,
+				# NOTE: we need playerNumbers.has(id) to avoid errors, especially when animationFinished() is called due to an ability trigger mid turn.
 				if playerNumbers.has(id) and playerNumbers[id] == gameState["player"]:
 					match playerNumbers[id]:
 						1:
@@ -566,62 +593,6 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 	playerHealthUpdated.emit(targetIDs, oldHealths, false)
 #endregion
 
-#region Card Related?
-## The move parameter will change to a Dictionary in the future. TODO
-## CRITICAL vulnerable to exploits
-## Locations as seen by the player
-## @deprecated
-# TODO fix up RPC parameters
-@rpc("any_peer", "call_local", "reliable")
-func requestMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
-	if multiplayer.is_server():
-		var actualAttackerLocation: Array[int] = attackerLocation
-		var actualTargetLocation: Array[int] = targetLocation
-		# WARNING hard coded
-		if id != 1:
-			actualAttackerLocation[0] = 3 - attackerLocation[0]
-			actualTargetLocation[0] = 3 - targetLocation[0]
-		
-		# if the right person has called the function,
-		# if the attacker is a valid card (belonging AND existence),
-		# if the target is a valid card (existence),
-		# WARNING hard coded
-		if playerNumbers[id] == gameState.player and (attackerLocation[0] == 0 or attackerLocation[0] == 1) and activeCards[attackerLocation[0]][attackerLocation[1]] != null and activeCards[targetLocation[0]][targetLocation[1]] != null:
-			# process move logic
-			for i in players:
-				if id == i: # if this is the player that sent it (the locations are accurate from their perspective),
-					approveMove.rpc_id(i, id, _move, attackerLocation, targetLocation)
-				else: # if this is the server and the opponent sent in the request,
-					approveMove.rpc_id(i, id, _move, actualAttackerLocation, actualTargetLocation)
-		# TODO process move logic
-		# TODO ensure updates are pushed
-
-## The move parameter will change to a Dictionary in the future. TODO
-## @deprecated
-@rpc("authority", "call_local", "reliable")
-func approveMove(id: int, _move: String, attackerLocation: Array[int], targetLocation: Array[int]):
-		if _move == "AttackDirect":
-			# TODO complete with dynamic strengths, etc.
-			var move = AttackDirect.new()
-			move.base_damage = 1
-			
-			move.execute(activeCards[targetLocation[0]][targetLocation[1]], activeCards[attackerLocation[0]][attackerLocation[1]])
-
-## called when a client requests to change the active move of a card active on the field.
-# TODO fix up RPC parameters
-@rpc
-func changeActiveMove():
-	# TODO ensure the right person has called the function at the right time
-	# TODO ensure updates are pushed
-	pass
-
-# what the hell is this? WARNING
-func changeCardHealth(target: Card, oldCardHealth: int):
-	print("The card's health changed gained by ", target.health - oldCardHealth)
-
-
-#endregion
-
 #region Battle logic
 ## lane: The lane variable refers to the array index of the lane (0-4)
 ## To ONLY be used on the server.
@@ -694,6 +665,7 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 					if y == -1:
 						return null
 					else:
+						# TODO explain what this means
 						@warning_ignore("integer_division")
 						return y < gridHeight / 2
 				"BonusAttack":
@@ -713,6 +685,36 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 				_:
 					print_debug("The given Card has an invalid move type.")
 					return null
+
+## Attempts to trigger abilities based on the respective flag.
+## This function calls for and handles animations as needed.
+func triggerAbilities(flag: String):
+	# Remember that the ability queue is: [location, source: Card, animation to execute]
+	
+	# Loop through every ability from Stickmen to Wywys, from left to right.
+	# TODO loop through inventory cards
+	for i in range(gridHeight):
+		for a in range(gridLength):
+			# check if the card has an ability that will trigger due to this flag
+			# check all abilities
+			for b in activeCards[i][a].card.abilities:
+				# check all ability flags
+				for c in b.flags:
+					if flag == c: # if there is an ability,
+						triggerAbility(b, [i, a] as Array[int], activeCards[i][a])
+						break # continue to the next ability to check
+	
+	if not nextAbilities.is_empty(): # if we need to execute abilities,
+		animationFinished() # this might look fishy, but need to tell the animationFinished function to handle the animations related to the abilities. He will catch it!
+
+## attempts to trigger a single ability of a card.
+func triggerAbility(ability: Ability, location: Array[int], card: Card, target = null):
+	if not ability.prompt.is_empty() and target == null:
+		prompt.rpc(currentPrompt)
+		nextAbilities.append([location, card, ability.execute(await promptResponse, card)])
+	else:
+		nextAbilities.append([location, card, ability.execute(target, card), ability.flags])
+
 
 # TODO make description useful and informative
 ## Called by the server to indicate that stats for Entities and/or Players have changed.
@@ -772,6 +774,19 @@ func execute(_targets: Array[Dictionary] = nextAnimations):
 			"Debuff":
 				debuff.emit(i.target, i.cause, i.statChange, i.directAttack)
 			"Kill":
+				var abilityTrigger = false # TODO get rid of this because there's probably a better way
+				# check if we have to do any death abilities
+				if i.target is Array[int] and multiplayer.is_server():
+					for a in activeCards[i.target[0]][i.target[1]].card.abilities:
+						if a.move == null: # ignore abilities that will do nothing
+							continue
+						
+						for b in a.flags:
+							if b == "death":
+								triggerAbility(a, i.target, activeCards[i.target[0]][i.target[1]].card, findTarget(a.move, i.target[0], i.target[1]))
+								abilityTrigger = true
+								break
+				
 				kill.emit(i.target)
 			"Ability":
 				ability.emit(i.target, deserialize(i.statChange))
@@ -811,9 +826,31 @@ func addAnimations(animations: Variant):
 ## To ONLY be used on the server
 func animationFinished():
 	if multiplayer.is_server():
+		# if there is a prompt that needs to be addressed immediately,
+		if currentPrompt.has("target") and currentPrompt.has("player") and currentPrompt.has("text"):
+			prompt.rpc(currentPrompt)
+		
 		# if there are more animations to play as a result of the previous attacks/animations,
 		if not nextAnimations.is_empty():
 			execute.rpc(nextAnimations)
+		elif not nextAbilities.is_empty():
+			while not nextAbilities.is_empty():
+				# verify the Card that caused the ability still exists
+				var validAbilityTrigger = activeCards[nextAbilities[0][0][0]][nextAbilities[0][0][1]] == nextAbilities[0][1]
+				for i in nextAbilities[0][3]:
+					if i == "death":
+						validAbilityTrigger = true
+				if validAbilityTrigger:
+					nextAnimations.insert(0, nextAbilities[0][2]) # CRITICAL fix this, a separate execute call should be made
+					nextAbilities.pop_front()
+					# found somesthing to execute!
+					execute.rpc(nextAnimations)
+					return
+				else:
+					nextAbilities.pop_front()
+			
+			# nextAbilities array is empty
+			changeGameState.rpc_id(1, -1)
 		else:
 			changeGameState.rpc_id(1, -1)
 #endregion
@@ -1003,14 +1040,51 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 #endregion
 #endregion
 
-## Flips the y-coordinate while keeping the x coordinate constant.
-## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
-func flipCoords(coords: Array[int]):
-	@warning_ignore("integer_division")
-	return [gridHeight / 2 - coords[0], coords[1]]
+@rpc("authority", "call_local", "reliable")
+func prompt(prompt: Dictionary):
+	if prompt.player == playerNumbers[myID]: # if I'm the guy being asked,
+		levelNode.prompt(prompt)
 
-## Flips the y-coordinate.
-## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
-func flipCoord(coord: int):
-	@warning_ignore("integer_division")
-	return gridHeight / 2 - coord
+@rpc("any_peer", "call_local", "reliable")
+func respondToPrompt(id: int, response: Variant):
+	# if there is no prompt to respond to,
+	if currentPrompt.is_empty():
+		return
+	
+	var validResponse = true # innocent until proven guilty
+	# if the correct person has responded,
+	if currentPrompt.player == playerNumbers[id]:
+		# check for a valid response,
+		# WARNING hard-coded
+		if response is Array[int]:
+			if currentPrompt.has("matchCardID") and not activeCards[response[0]][response[1]].card.cardID == currentPrompt.matchCardID:
+				validResponse = false
+			if currentPrompt.has("side"):
+				if playerNumbers[id] == 1 and response[0] < gridHeight / 2:
+					validResponse = false
+				elif playerNumbers[id] == 2 and response[0] > gridHeight / 2:
+					validResponse = false
+		elif response is int:
+			# TODO test and fix
+			if currentPrompt.has("matchCardID"):
+				validResponse = false
+			if currentPrompt.has("side"):
+				if currentPrompt.side == "Hostile" and playerNumbers[id] == response:
+					validResponse = false
+				elif currentPrompt.side == "Friendly" and playerNumbers[id] != response:
+					validResponse = false
+		else:
+			validResponse = false
+		
+		if validResponse:
+			approvePromptResponse.rpc(id)
+			promptResponse.emit(response)
+		else:
+			# TODO responsive rejection
+			return
+
+@rpc("authority", "call_local", "reliable")
+func approvePromptResponse(id: int):
+	# if that's me,
+	if id == myID:
+		levelNode.clearPrompt()

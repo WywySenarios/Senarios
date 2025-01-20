@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="Entity" load_steps=8 format=3 uid="uid://bfukmr0kfxaqs"]
+
+[ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_u7w2u"]
+[ext_resource type="Script" path="res://scripts/card/entity.gd" id="2_0bkog"]
+[ext_resource type="Script" path="res://scripts/card/moves/Conjure.gd" id="2_53gr6"]
+[ext_resource type="Script" path="res://scripts/card/moves/AttackDirect.gd" id="3_xblsk"]
+
+[sub_resource type="Resource" id="Resource_no7x0"]
+script = ExtResource("2_53gr6")
+cardToConjure = "Reconstruction-Wywy"
+conjureType = Array[String]([""])
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[sub_resource type="Resource" id="Resource_qb7rv"]
+script = ExtResource("1_u7w2u")
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+flags = Array[String](["death"])
+move = SubResource("Resource_no7x0")
+prompt = {}
+
+[sub_resource type="Resource" id="Resource_ixqeg"]
+script = ExtResource("3_xblsk")
+base_damage = 2
+name = "N/A"
+tooltip = ""
+quick_tooltip = ""
+
+[resource]
+script = ExtResource("2_0bkog")
+health = 2
+hpr = 0
+shield = 0
+aggressive = true
+name = "N/A"
+cardID = "Reconstruction-Wywy"
+cardType = ""
+generation = 0
+cost = 0
+type = Array[String]([])
+move = SubResource("Resource_ixqeg")
+abilities = Array[ExtResource("1_u7w2u")]([SubResource("Resource_qb7rv")])

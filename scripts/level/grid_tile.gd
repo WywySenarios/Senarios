@@ -2,6 +2,8 @@ extends Control
 
 class_name GridTile
 
+signal clicked(id: int, tile: Array[int])
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# Connect to the lobby's signals (Lobby is an autoload so this will always be ready to connect)
@@ -13,6 +15,10 @@ func _ready():
 	Lobby.kill.connect(animationKill)
 	Lobby.ability.connect(animationAbility)
 	# END: Animation signals
+	
+	# prompt signals:
+	clicked.connect(Lobby.respondToPrompt)
+	# END: prompt signals
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -86,3 +92,9 @@ func animationAbility(target: Variant, ability: Ability) -> void:
 		# TODO trigger ability
 		$Card.hide()
 #endregion
+
+
+
+func onInputEvent(viewport: Node, event: InputEvent, shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.button_index == 0 and event.pressed:
+		clicked.emit(Lobby.myID, self.get_meta("id") as Array[int])

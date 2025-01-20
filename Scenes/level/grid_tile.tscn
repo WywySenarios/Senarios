@@ -43,3 +43,5 @@ offset_right = 177.0
 offset_bottom = 230.0
 scale = Vector2(0.5, 0.5)
 faceup = true
+
+[connection signal="input_event" from="Area2D" to="." method="onInputEvent"]

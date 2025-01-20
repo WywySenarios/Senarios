@@ -12,7 +12,6 @@ var statusEffects # status effects that currently apply to this card
 
 ## Runtime variable used to store the serialized moves. DO NOT use this for any purposes outside of this class.
 var serializedMoves: Array[Dictionary]
-@export var abilities : Array[Ability]
 
 var location = [-1, -1]
 
@@ -67,8 +66,6 @@ func serialize() -> Dictionary:
 			"aggressive": aggressive,
 			# CRITICAL this will not work as intended because this attribute depends on a custom class
 			"statusEffects": statusEffects,
-			# CRITICAL this will not work as intended because this attribute depends on a custom class
-			"abilites": abilities.duplicate(),
 		},
 	}
 	
@@ -120,7 +117,6 @@ func deserialize(_object: Dictionary) -> void:
 		statusEffects = _object.content.statusEffects
 		# TODO emit signal
 	
-	# TODO abilities
 	# TODO status effects
 	
 	super.deserialize(_object)

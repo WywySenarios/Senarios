@@ -8,7 +8,7 @@ class_name Move extends Resource
 func _init(arg: Variant = null):
 	match typeof(arg):
 		TYPE_DICTIONARY:
-			deserialize(arg)
+			Lobby.deserialize(arg)
 
 func getType() -> String:
 	return "Move"
@@ -17,10 +17,8 @@ func getType() -> String:
 func execute(target: Variant, parent: Card) -> Variant:
 	return {}
 
-## TODO test this function
-## Transform this card's data into a Dictionary.
-## Does not modify the card's contents.
-## @experimental
+## Transform this Move's data into a Dictionary.
+## Does not modify the Move's contents.
 func serialize() -> Dictionary:
 	return {
 		"type": "Move",
@@ -31,8 +29,7 @@ func serialize() -> Dictionary:
 		}
 	}
 
-## TODO testing, signals
-## Deserialize the dictionary and inject its data into the card this was called on.
+## Deserialize the dictionary and inject its data into the Move this was called on.
 ## Calls updates only when there is a change in the values or references
 func deserialize(_object: Dictionary) -> void:
 	# ensure validity (this could be removed given that the child class usually ensures validity as well)

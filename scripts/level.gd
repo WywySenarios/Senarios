@@ -72,11 +72,6 @@ func _ready() -> void:
 	$"Card Draw/2".clicked.connect(cardWish)
 	$"Card Draw/3".clicked.connect(cardWish)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta) -> void:
-	pass
-
 ## Send a request to the server to switch cards
 ## The singular parameter is a draw_card scene.
 func cardWish(cardNode: Control) -> void:
@@ -211,3 +206,10 @@ func onGameEnd(loser: int) -> void:
 	
 	$"End Game Message".show()
 #endregion
+
+func prompt(prompt: Dictionary) -> void:
+	$"Current Prompt".text = prompt.message
+	$"Current Prompt".show()
+
+func clearPrompt() -> void:
+	$"Current Prompt".hide()

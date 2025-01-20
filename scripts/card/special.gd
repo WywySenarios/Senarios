@@ -7,8 +7,6 @@ class_name Special extends Card
 ## NOT SUPPORTED OR USED
 ## @experimental
 @export var sacrificial : String
-## NOT SUPPORTED OR USED
-@export var abilities : Array[Ability]
 
 func execute(target: Variant) -> Variant:
 	charges -= 1
