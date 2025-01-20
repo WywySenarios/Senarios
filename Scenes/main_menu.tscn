@@ -16,6 +16,7 @@ offset_left = 435.0
 offset_top = 260.0
 offset_right = 741.0
 offset_bottom = 373.0
+disabled = true
 text = "Level Select"
 
 [node name="Deck Maker Button" type="Button" parent="."]
@@ -23,6 +24,7 @@ offset_left = 315.0
 offset_top = 452.0
 offset_right = 621.0
 offset_bottom = 555.0
+disabled = true
 text = "Deck Maker"
 
 [node name="Join Game Button" type="Button" parent="."]

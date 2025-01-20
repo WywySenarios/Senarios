@@ -13,7 +13,7 @@ class_name MoveAll extends Move
 ## NOTE: Cards cannot meet any criteria if there are no criteria.
 @export var criteria: Dictionary = {
 	"type": "All",
-	"content": {}
+	"content": {},
 }
 
 func getType() -> String:
@@ -33,7 +33,7 @@ func execute(_target: Variant, attacker: Card) -> Array[Dictionary]:
 				var matchesAnyCriterion = false
 				var matchesAllCriterion = true
 				if criteria.content.has("match"):
-					if Lobby.activeCards[i][a].card.card.cardID == criteria.content.match:
+					if Lobby.activeCards[i][a].card.cardID == criteria.content.match:
 						matchesAnyCriterion = true
 					else:
 						matchesAllCriterion = false
@@ -49,6 +49,7 @@ func execute(_target: Variant, attacker: Card) -> Array[Dictionary]:
 				
 				if moveActive:
 					# WARNING hard-coded
+					@warning_ignore("integer_division")
 					var friendly = not i < Lobby.gridHeight / 2 # friendly from the host's perspective?
 					# invert friendliness if you are not the host
 					if _target:
@@ -68,7 +69,10 @@ func serialize() -> Dictionary:
 	var output: Dictionary = {
 		"subtype": "MoveAll",
 		"content": {
-			"criteria": criteria,
+			"criteria": {
+				"type": criteria.type,
+				"content": criteria.content
+			}
 		},
 	}
 	
@@ -92,8 +96,9 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("MoveHostile"):
 		MoveHostile = Lobby.deserialize(_object.content.MoveHostile)
 	
-	if _object.content.has("criteria") and ((_object.content.criteria.has("type") and _object.content.criteria.type != criteria.type) or (_object.content.criteria.has("content") and _object.content.criteria.content != criteria.content)):
+	if _object.content.has("criteria"): #and ((_object.content.criteria.has("type") and _object.content.criteria.type != criteria.type) or (_object.content.criteria.has("content") and _object.content.criteria.content != criteria.content)):
 		criteria = _object.content.criteria
+		criteria.content = _object.content.criteria.content
 		# TODO emit signal
 	
 	super.deserialize(_object)

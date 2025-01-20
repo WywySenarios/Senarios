@@ -15,11 +15,6 @@ func _ready():
 	Lobby.player_connected.connect(_opponent_connected)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
-
-
 
 ## Called when the opponent joins the lobby. The game is now ready to start.
 func _opponent_connected(id):

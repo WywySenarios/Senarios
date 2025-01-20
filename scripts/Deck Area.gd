@@ -5,10 +5,5 @@ extends StaticBody2D
 func _ready():
 	modulate = Color(modulate, 0.5)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
-
 func setVisibility(visibility: bool):
 	visible = visibility

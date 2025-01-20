@@ -23,7 +23,9 @@ script = ExtResource("4_nkpln")
 MoveFriendly = SubResource("Resource_r832q")
 MoveHostile = SubResource("Resource_8aqes")
 criteria = {
-"content": {},
+"content": {
+"match": "Gen-4-Stickman-Factory"
+},
 "type": "All"
 }
 name = "N/A"
@@ -35,7 +37,6 @@ script = ExtResource("2_qj6gc")
 charges = 1
 chargeRegen = 0
 sacrificial = ""
-abilities = Array[ExtResource("1_eaa6w")]([])
 name = "N/A"
 cardID = "Production-Break"
 cardType = ""
@@ -43,3 +44,4 @@ generation = 0
 cost = 2
 type = Array[String]([])
 move = SubResource("Resource_8dq0n")
+abilities = Array[ExtResource("1_eaa6w")]([])

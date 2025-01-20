@@ -181,7 +181,7 @@ func changeHealth(_card: Entity = card, oldHealth: int = -1) -> void:
 
 ## Called when the attack of the chilid card should be updated (does not necessarily change the value)
 func changeAttack(_card: Card = card, oldAttack: int = -1) -> void:
-	if faceup:
+	if faceup and card.move != null:
 		match card.move.getType():
 			"AttackDirect":
 				$"Contents/Attack Container".show()

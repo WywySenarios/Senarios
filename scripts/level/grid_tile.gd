@@ -20,11 +20,6 @@ func _ready():
 	clicked.connect(Lobby.respondToPrompt)
 	# END: prompt signals
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
-
 #region Animations
 # General validity checking strategy:
 # check if this is really this card that is being killed:

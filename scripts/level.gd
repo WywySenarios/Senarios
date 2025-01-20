@@ -205,11 +205,16 @@ func onGameEnd(loser: int) -> void:
 		$"End Game Message".text = "You won!"
 	
 	$"End Game Message".show()
+	$"End Game Button".show()
 #endregion
 
-func prompt(prompt: Dictionary) -> void:
-	$"Current Prompt".text = prompt.message
+func prompt(_prompt: Dictionary) -> void:
+	$"Current Prompt".text = _prompt.message
 	$"Current Prompt".show()
 
 func clearPrompt() -> void:
 	$"Current Prompt".hide()
+
+
+func onMainMenuButtonUp() -> void:
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

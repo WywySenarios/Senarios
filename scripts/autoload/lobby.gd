@@ -248,7 +248,7 @@ func sendFullPlayerInformation(player: Player, id, signalToFire: Signal = player
 ## This function creates a server and connects the person who is currently trying to host to their own server.
 func createServer(playerName: String):
 	peer = ENetMultiplayerPeer.new()
-	var error = peer.create_server(PORT, MAX_CONNECTIONS)
+	var error = peer.create_server(PORT, MAX_CONNECTIONS) # CRITICAL can't create server if you already played a game before. Rebooting the project fixes this.
 	if error != OK:
 		server_up.emit("Failed to create server: " + str(error))
 		return error
@@ -362,6 +362,8 @@ func deserialize(_object: Dictionary) -> Variant:
 				object = Heal.new()
 			"BonusAttack":
 				object = BonusAttack.new()
+			"GenerateEnergy":
+				object = GenerateEnergy.new()
 			_:
 				return null
 	else:
@@ -487,7 +489,6 @@ func changeGameState(id: int):
 						2:
 							approveGameStateChange.rpc({"name": "Battle", "lane": 0})
 			"Battle":
-				# CRITICAL TODO ensure validity
 				match gameState.lane:
 					0: # lane 1 is done fighting,
 						approveGameStateChange.rpc({"name": "Battle", "lane": 1})
@@ -531,8 +532,9 @@ func approveGameStateChange(newGameState: Dictionary):
 func serverNextRound():
 	gameRound += 1
 
-	# give energy
-	setEnergy.rpc(playersReady, 10) # gameRound
+	# give energy and trigger related abilities
+	setEnergy.rpc(playersReady, gameRound)
+	triggerAbilities("NewRoundEnergy")
 	
 	# draw cards
 	for i in players.keys():
@@ -551,7 +553,7 @@ func setEnergy(targetIDs: Array[int], energyCount: int):
 	for i in targetIDs:
 		oldEnergies.append(players[i].energy)
 		players[i].energy = energyCount
-		
+	
 	playerEnergyUpdated.emit(targetIDs, oldEnergies, true)
 
 ## Called by the server when someone's health changes.
@@ -680,7 +682,7 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 					# index 2 -> player 2
 					if y == 1:
 						return 1
-					else:
+					else: # CRITICAL always defaults to player 2 if an invalid input is given
 						return playerNumbers.find_key(2)
 				_:
 					print_debug("The given Card has an invalid move type.")
@@ -688,20 +690,32 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 
 ## Attempts to trigger abilities based on the respective flag.
 ## This function calls for and handles animations as needed.
-func triggerAbilities(flag: String):
+## [param y] and [param lane] are passed into findTarget() function when needed.
+func triggerAbilities(flag: String, y: int = -1, lane: int = -1):
 	# Remember that the ability queue is: [location, source: Card, animation to execute]
+	var yIn: int
+	var laneIn: int
 	
 	# Loop through every ability from Stickmen to Wywys, from left to right.
 	# TODO loop through inventory cards
 	for i in range(gridHeight):
 		for a in range(gridLength):
+			# skip cards that don't exist
+			if activeCards[i][a] == null:
+				continue
+			
 			# check if the card has an ability that will trigger due to this flag
 			# check all abilities
 			for b in activeCards[i][a].card.abilities:
 				# check all ability flags
 				for c in b.flags:
 					if flag == c: # if there is an ability,
-						triggerAbility(b, [i, a] as Array[int], activeCards[i][a])
+						# TODO CRITICAL change findTarget algorithm
+						if y == -1:
+							yIn = i # TODO CRITICAL change default
+						if lane == -1:
+							laneIn = a
+						triggerAbility(b, [i, a] as Array[int], activeCards[i][a].card, findTarget(b.move, yIn, laneIn))
 						break # continue to the next ability to check
 	
 	if not nextAbilities.is_empty(): # if we need to execute abilities,
@@ -789,7 +803,11 @@ func execute(_targets: Array[Dictionary] = nextAnimations):
 				
 				kill.emit(i.target)
 			"Ability":
+				# TODO implement
 				ability.emit(i.target, deserialize(i.statChange))
+			"GenerateEnergy":
+				if multiplayer.is_server():
+					giveEnergy.rpc([i.target] as Array[int], i.statChange.energy)
 			_: # if they didn't give a valid type,
 				continue # ignore this entire request
 		
@@ -840,6 +858,8 @@ func animationFinished():
 				for i in nextAbilities[0][3]:
 					if i == "death":
 						validAbilityTrigger = true
+					else:
+						validAbilityTrigger = true # TODO CRITICAL fix this, it's 11:09 and my project's due XD
 				if validAbilityTrigger:
 					nextAnimations.insert(0, nextAbilities[0][2]) # CRITICAL fix this, a separate execute call should be made
 					nextAbilities.pop_front()
@@ -1041,9 +1061,9 @@ func approveCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 #endregion
 
 @rpc("authority", "call_local", "reliable")
-func prompt(prompt: Dictionary):
-	if prompt.player == playerNumbers[myID]: # if I'm the guy being asked,
-		levelNode.prompt(prompt)
+func prompt(_prompt: Dictionary):
+	if _prompt.player == playerNumbers[myID]: # if I'm the guy being asked,
+		levelNode.prompt(_prompt)
 
 @rpc("any_peer", "call_local", "reliable")
 func respondToPrompt(id: int, response: Variant):
@@ -1060,8 +1080,10 @@ func respondToPrompt(id: int, response: Variant):
 			if currentPrompt.has("matchCardID") and not activeCards[response[0]][response[1]].card.cardID == currentPrompt.matchCardID:
 				validResponse = false
 			if currentPrompt.has("side"):
+				@warning_ignore("integer_division")
 				if playerNumbers[id] == 1 and response[0] < gridHeight / 2:
 					validResponse = false
+					@warning_ignore("integer_division") # IDK why godot REALLY wants me to indent this, but OK. Maybe I'll submit a bug report later.
 				elif playerNumbers[id] == 2 and response[0] > gridHeight / 2:
 					validResponse = false
 		elif response is int:

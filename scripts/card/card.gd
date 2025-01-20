@@ -53,8 +53,6 @@ func serialize() -> Dictionary:
 	
 	if move != null:
 		output.content["move"] = move.serialize()
-	else:
-		print_debug("Uh oh! move is null!")
 	
 	var serializedAbilities: Array[Dictionary] = []
 	for i in abilities:

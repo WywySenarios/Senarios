@@ -9,11 +9,6 @@ var cardSelected = null
 func _ready():
 	pass # Replace with function body.
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
-
 func selectCard(card) -> void:
 	if cardSelected == null:
 		#print("card reselected", card)

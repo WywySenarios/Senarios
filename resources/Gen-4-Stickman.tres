@@ -1,6 +1,5 @@
-[gd_resource type="Resource" script_class="Entity" load_steps=6 format=3 uid="uid://dj6fq4kxuiqw3"]
+[gd_resource type="Resource" script_class="Entity" load_steps=5 format=3 uid="uid://dj6fq4kxuiqw3"]
 
-[ext_resource type="Texture2D" uid="uid://ctm24mfwo6rou" path="res://assets/cards/card_images/cardImage-Gen-4-Stickman.png" id="1_518ne"]
 [ext_resource type="Script" path="res://scripts/card/entity.gd" id="1_i8f4h"]
 [ext_resource type="Script" path="res://scripts/card/ability.gd" id="1_im243"]
 [ext_resource type="Script" path="res://scripts/card/moves/AttackDirect.gd" id="4_8kdm3"]
@@ -18,12 +17,11 @@ health = 1
 hpr = 0
 shield = 0
 aggressive = true
-abilities = Array[ExtResource("1_im243")]([])
 name = "Stickman"
 cardID = "Gen-4-Stickman"
 cardType = ""
 generation = 4
-cost = 0.0
+cost = 0
 type = Array[String]([])
-image = ExtResource("1_518ne")
 move = SubResource("Resource_57sfe")
+abilities = Array[ExtResource("1_im243")]([])

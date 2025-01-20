@@ -7,12 +7,6 @@ func _ready():
 	multiplayer.connection_failed.connect(failed_to_join) # failed connection
 	Lobby.player_info_changed.connect(playerInfoChanged) # server host's name?
 
-
-# Called every frame. 'delta' is the elaspsed time since the previous frame.
-func _process(delta) -> void:
-	pass
-
-
 ## Attempts to connect to the host with the IP address specified in the respective text box (as inputted by the user)
 func _on_join_button_pressed() -> void:
 	# try to join the lobby. If the attempt fails, tell the user that they couldn't connect.
