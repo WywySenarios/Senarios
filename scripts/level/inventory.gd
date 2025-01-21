@@ -138,7 +138,7 @@ func removeCard(card: Variant):
 	
 	if index != -1:
 		card.isInInventory = false
-		Draggables.deselectCard(card) # fallback function just to ensure good behaviour of the computer program
+		#Draggables.deselectCard(card) # fallback function just to ensure good behaviour of the computer program
 		remove_child(cardNodes[index])
 		cards.pop_at(index)
 		cardNodes.pop_at(index)
