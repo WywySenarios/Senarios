@@ -1,11 +1,5 @@
 extends Control
 
-# Exported variables:
-## Height in tiles
-@export var height: int = 2
-## Width in tiles
-@export var width: int = 2
-
 const gridTileScene = preload("res://Scenes/level/grid_tile.tscn")
 
 
@@ -36,15 +30,19 @@ const cardScene: PackedScene = preload("res://scenes/level/card.tscn")
 
 func _ready():
 	# TODO don't hardcode this
-	activeCards.resize(2)
-	#activeCards.fill([null, null, null, null, null])
-	activeCards[0] = [null, null, null, null, null]
-	activeCards[1] = [null, null, null, null, null]
+	activeCards.resize(Lobby.gridHeight)
+	for i in len(activeCards):
+		var arrayToAdd = []
+		arrayToAdd.resize(Lobby.gridWidth)
+		# WARNING CRITICAL make sure that the above statment is actually creating new arrays.
+		activeCards[i] = arrayToAdd
 	
-	gridTiles.resize(2)
-	#gridTiles.fill([null, null, null, null, null])
-	gridTiles[0] = [null, null, null, null, null]
-	gridTiles[1] = [null, null, null, null, null]
+	gridTiles.resize(Lobby.gridHeight)
+	for i in len(gridTiles):
+		var arrayToAdd = []
+		arrayToAdd.resize(Lobby.gridWidth)
+		# WARNING CRITICAL make sure that the above statment is actually creating new arrays.
+		gridTiles[i] = arrayToAdd
 	
 	var metadata
 	for i in get_children():
@@ -53,7 +51,7 @@ func _ready():
 			continue
 		
 		metadata = [int(metadata[0]), int(metadata[1])]
-		i.set_meta("id", metadata.duplicate())
+		i.set_meta("id", metadata.duplicate() as Array[int])
 		i.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(i))
 		i.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(i))
 		
@@ -62,51 +60,6 @@ func _ready():
 	# link to server
 	Lobby.gridTiles = gridTiles
 	Lobby.activeCards = activeCards
-
-#region Old Grid Creation Code
-# Called when the node enters the scene tree for the first time.
-## Create grid tiles.
-## Connects grid tile signals & card signals.
-#func _ready() -> void:
-	## stores whether or not the [height, width] has an odd number of tiles or not
-	#
-	#var currentGridTileRow
-	#var currentCardRow
-	#var currentGridTile
-	#
-	## make sure there are enough columns
-	#self.columns = width
-	#
-	#for a in range(height):
-		#currentGridTileRow = Array()
-		#currentCardRow = Array()
-		#for b in range(width):
-			## create grid tile
-			#currentGridTile = gridTileScene.instantiate()
-			#currentGridTile.set_meta("id", [a,b])
-			#currentGridTile.name = str(a) + "," + str(b)
-			## allow for signals for mouse_entered & mouse_exited to pass into here, thereby decreasing the number of scripts I have to write.
-			#currentGridTile.get_node("Area2D").mouse_entered.connect(_on_mouse_entered_gridtile.bind(currentGridTile))
-			#currentGridTile.get_node("Area2D").mouse_exited.connect(_on_mouse_exit_gridtile.bind(currentGridTile))
-			## make sure that the grid tile will actually show up and exist
-			#add_child(currentGridTile)
-			#currentGridTileRow.append(currentGridTile)
-			#
-			## when the grid is first made, there are no cards on the grid
-			#currentCardRow.append(null)
-		#
-		#gridTiles.append(currentGridTileRow)
-		#activeCards.append(currentCardRow)
-	#
-	#
-	## Connect signals of every card inside the scene
-	#for i in get_parent().get_node("Inventories").get_node("My Inventory").get_children():
-		#i.place.connect(_on_card_placement)
-#endregion
-
- #Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta: float) -> void:
-	#pass
 
 ## Setter for [member activegridTile]
 ## This function is intended for detecting where the player might place the card.
@@ -129,7 +82,11 @@ func _on_card_placement(card: Control) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	# you also have to place the card in the right spot
-	if (activeGridTile != null) and (activeGridTile.get_meta("id")[0] == 1):
+	print(activeGridTile != null)
+	print(Lobby.playerNumbers[Lobby.myID])
+	if activeGridTile != null:
+		print(Lobby.findGridTileOwner(activeGridTile.get_meta("id") as Array[int]))
+	if (activeGridTile != null) and Lobby.playerNumbers[Lobby.myID] == Lobby.findGridTileOwner(activeGridTile.get_meta("id")):
 		lastCardPlacementRequest = {
 			"card": card,
 			"gridTile": activeGridTile

@@ -77,8 +77,8 @@ var gameRound: int = 1
 @warning_ignore("unused_parameter")
 var gridTiles: Array[Array]
 var activeCards: Array[Array]
-const gridHeight: int = 2
-const gridLength: int = 5
+const gridHeight: int = 4
+const gridWidth: int = 5
 #endregion
 
 #region Card Draw Phase Signals
@@ -385,15 +385,34 @@ func deserialize(_object: Dictionary) -> Variant:
 
 ## Flips the y-coordinate while keeping the x coordinate constant.
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
-func flipCoords(coords: Array[int]):
+func flipCoords(coords: Array[int]) -> Array[int]:
 	@warning_ignore("integer_division")
-	return [gridHeight / 2 - coords[0], coords[1]]
+	return [gridHeight / 2 - coords[0], coords[1]] as Array[int]
 
 ## Flips the y-coordinate.
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
-func flipCoord(coord: int):
+func flipCoord(coord: int) -> int:
 	@warning_ignore("integer_division")
 	return gridHeight / 2 - coord
+
+## Returns who owns the respective grid tile.
+## Input is expected to be Array[int] or int.
+func findGridTileOwner(coord: Variant) -> int:
+	var y: int = -1
+	if coord is Array and coord[0] is int:
+		y = coord[0]
+	elif coord is int:
+		y = coord
+	else:
+		return -1
+	
+	# if it's the opposing player's tile,
+	@warning_ignore("integer_division")
+	if y < gridHeight / 2:
+		# WARNING CRITICAL hard-coded
+		return 3 - playerNumbers[myID]
+	else:
+		return playerNumbers[myID]
 #endregion
 
 #region Game Logic & Update Pushes
@@ -699,7 +718,7 @@ func triggerAbilities(flag: String, y: int = -1, lane: int = -1):
 	# Loop through every ability from Stickmen to Wywys, from left to right.
 	# TODO loop through inventory cards
 	for i in range(gridHeight):
-		for a in range(gridLength):
+		for a in range(gridWidth):
 			# skip cards that don't exist
 			if activeCards[i][a] == null:
 				continue
@@ -996,9 +1015,13 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		canPlace = false
 	elif _card.subtype == "Entity":
 		# make sure there is a free spot on the board AND the player has played the card on their side of the field
-		canPlace = canPlace and activeCards[location[0]][location[1]] == null and originalLocation[0] == 1
+		canPlace = canPlace and activeCards[location[0]][location[1]] == null
+		# make sure the player has played the card on their side of the field
+		canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
+		
+		# CRITICAL TODO make sure the card is eligible to play as either the front or back
 	elif _card.subtype == "Special":
-		# CRITICAL make sure the move actually has an affect on a card
+		# CRITICAL TODO make sure the move actually has an affect on a card
 		canPlace = canPlace and findTarget(_card.content.move.subtype, location[0], location[1]) != null
 	elif _card.subtype == "Environment":
 		pass
@@ -1026,7 +1049,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 			else:
 				if id == 1: # if the host placed the card,
 					# TODO avoid hard-code
-					approveCardPlacement.rpc_id(i, id, _card, [1 - location[0], location[1]] as Array[int])
+					approveCardPlacement.rpc_id(i, id, _card, flipCoords(location))
 				else:
 					approveCardPlacement.rpc_id(i, id, _card, originalLocation)
 	else: # reject.
@@ -1080,11 +1103,7 @@ func respondToPrompt(id: int, response: Variant):
 			if currentPrompt.has("matchCardID") and not activeCards[response[0]][response[1]].card.cardID == currentPrompt.matchCardID:
 				validResponse = false
 			if currentPrompt.has("side"):
-				@warning_ignore("integer_division")
-				if playerNumbers[id] == 1 and response[0] < gridHeight / 2:
-					validResponse = false
-					@warning_ignore("integer_division") # IDK why godot REALLY wants me to indent this, but OK. Maybe I'll submit a bug report later.
-				elif playerNumbers[id] == 2 and response[0] > gridHeight / 2:
+				if playerNumbers[id] != findGridTileOwner(response[0]):
 					validResponse = false
 		elif response is int:
 			# TODO test and fix

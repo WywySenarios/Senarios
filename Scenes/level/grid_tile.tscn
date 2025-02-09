@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cpkjg0llh0iyo"]
+[gd_scene load_steps=4 format=3 uid="uid://ct5vsp6ipbsqm"]
 
 [ext_resource type="Script" path="res://scripts/level/grid_tile.gd" id="1_wskgp"]
 [ext_resource type="PackedScene" uid="uid://w1e7gyi1mlqa" path="res://scenes/level/card.tscn" id="2_qisbv"]

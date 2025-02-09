@@ -1,5 +1,8 @@
 # Godot 4+ specific ignores
 .godot/
+## ignore builds
+## TODO fix this ignore to only target .exe files related to the builds of this game
+*.exe
 
 
 # fix some weird Godot bug that errors my little PC

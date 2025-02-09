@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://fch58mfkpb1w" path="res://scenes/level/Player.tscn" id="3_aic42"]
 [ext_resource type="PackedScene" uid="uid://b07e3x75q8tu1" path="res://scenes/level/draw_card.tscn" id="4_k0yv3"]
 [ext_resource type="PackedScene" uid="uid://5qux38olj7v8" path="res://scenes/level/inventory.tscn" id="4_yalkr"]
-[ext_resource type="PackedScene" uid="uid://ct5vsp6ipbsqm" path="res://scenes/level/grid_tile.tscn" id="5_6axwp"]
+[ext_resource type="PackedScene" uid="uid://cpkjg0llh0iyo" path="res://scenes/level/grid_tile.tscn" id="5_6axwp"]
 
 [sub_resource type="Gradient" id="Gradient_6xvj3"]
 
