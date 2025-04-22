@@ -620,11 +620,10 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 func battle(lane: int):
 	if multiplayer.is_server():
 		# have all (both) cards attack each other at the same time
-		var cardsInLane: Array = [activeCards[0][lane], activeCards[1][lane]]
+		var cardsInLane: Array[Control] = activeCards[lane]
 		var nextCard = null
 		var nextCardCard = null
-		# WARNING hard-coded
-		for i in range(0, 2):
+		for i in range(gridHeight):
 			nextCard = cardsInLane[i]
 			
 			# only execute moves on cards that actually exist.
@@ -643,9 +642,9 @@ func battle(lane: int):
 		execute.rpc(nextAnimations)
 
 ## Input the [param move] and get what it wants to target.
-## You can also input the y-coordinate the attacker is at.
+## You can also input the [param y]-coordinate the attacker is at.
 ## You can also input the [param lane] the card should target.
-func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
+func findTarget(move: Variant, y: int = -1, lane: int = -1) -> Variant:
 	var moveName: String
 	if move is String:
 		moveName = move
@@ -656,56 +655,74 @@ func findTarget(move: Variant, y = -1, lane = -1) -> Variant:
 		return null
 	
 	match moveName:
-				"AttackDirect":
-					if y == -1 or lane == -1:
-						return null
-					# WARNING hard-coded
-					# cards currently always attack straight. More logic will be needed if they don't.
-					# TODO custom targetting function that can be called by any move or ability
-					if activeCards[1 - y][lane] == null: # if there is no card to block the attack,
-						# attack the opposing player.
-						# remember that i = 0 means that a card is related to player 1.
-						# WARNING hard-coded
-						if y == 0: # if the card is player 2's card,
-							return 1
-						else:
-							return 2
-					else:
-						# attack the hostile card in the lane
-						return [1 - y, lane] as Array[int]
-				"MoveLane":
-					# pass in the [friendly card's coords, hostile card's coords]
-					# check if the card actually exists. Place null if it doesn't.
-					var output = [null, null]
-					if activeCards[y][lane] != null:
-						output[0] = [y, lane] as Array[int]
-					if activeCards[1 - y][lane] != null:
-						output[1] = [1 - y, lane] as Array[int]
-					return output
-				"MoveAll":
-					if y == -1:
-						return null
-					else:
-						# TODO explain what this means
-						@warning_ignore("integer_division")
-						return y < gridHeight / 2
-				"BonusAttack":
-					if y == -1 or lane == -1:
-						return null
-					else:
-						return [y, lane] as Array[int]
-				"Conjure":
-					# always tell the conjure card which player they belong to
-					# WARNING hard-coded
-					# index 1 -> player 1
-					# index 2 -> player 2
-					if y == 1:
-						return 1
-					else: # CRITICAL always defaults to player 2 if an invalid input is given
-						return playerNumbers.find_key(2)
-				_:
-					print_debug("The given Card has an invalid move type.")
-					return null
+		"AttackDirect":
+			if y == -1 or lane == -1:
+				return null
+			
+			# maybe we should just store the start, end, and increment in variables and then process the logic afterwards in one code block.
+			
+			if findGridTileOwner(y) == 1: # if it's player 1's card,
+				# try to hit the cards in the lane, starting from the middle then to the 0th index,
+				# for i in range(opponent outer card index, lastIndex - 1, increment by -1):
+				for i in range(gridHeight / 2 - 1, -1, -1):
+					if activeCards[i][lane] != null: # if a card is ready to block the attack,
+						return [i, lane] as Array[int]
+				
+				# if no card can manage to block the attack, go for the opponent's face.
+				# WARNING TODO hard-coded
+				return 2
+			else: # it is not player 1's card (attack in the opposite direction),
+				for i in range(gridHeight / 2, gridHeight):
+					if activeCards[i][lane] != null:
+						return [i, lane] as Array[int]
+				
+				# WARNING TODO hard-coded
+				return 1
+		"MoveLane":
+			# pass in the [code][[friendly cards' coords], [hostile cards' coords]][/code]
+			# We agree beforehand that the value passed in the "y" variable is the y coordinate of the respective card
+			# check if the card actually exists. Place null if it doesn't.
+			var output = [[], []]
+			@warning_ignore("integer_division")
+			output[0].resize(gridHeight / 2)
+			@warning_ignore("integer_division")
+			output[1].resize(gridHeight / 2)
+			
+			if gridHeight % 2 == 1: # if the height of the grid is not even,
+				if findGridTileOwner(y) == 1:
+					output[0].resize(gridHeight)
+			
+			# check all friendly cards for targets
+			# check all hostile cards for targets
+			if activeCards[y][lane] != null:
+				output[0] = [y, lane] as Array[int]
+			if activeCards[1 - y][lane] != null:
+				output[1] = [1 - y, lane] as Array[int]
+			return output
+		"MoveAll":
+			if y == -1:
+				return null
+			else:
+				# TODO explain what this means
+				@warning_ignore("integer_division")
+				return y < gridHeight / 2
+		"BonusAttack":
+			if y == -1 or lane == -1:
+				return null
+			else:
+				return [y, lane] as Array[int]
+		"Conjure":
+			# always tell the conjure card which player they belong to
+			# WARNING hard-coded
+			# index 1 -> player 1
+			# index 2 -> player 2
+			if y == 1:
+				return 1
+			else: # CRITICAL always defaults to player 2 if an invalid input is given
+				return playerNumbers.find_key(2)
+		_:
+			print_debug("The given Card has an invalid move type.")
+			return null
 
 ## Attempts to trigger abilities based on the respective flag.
 ## This function calls for and handles animations as needed.
@@ -996,10 +1013,8 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	var playerNumber = playerNumbers[id]
 	var inventoryIndex = players[id].serializedInventory().find(_card)
 	var originalLocation: Array[int] = location
-	# WARNING hard-coded
-	# CRITICAL TODO ensure player places on their own side of the lane
-	if id != 1:
-		location = [1 - location[0], location[1]]
+	#if id != 1:
+		#location = flipCoords(location)
 	
 	# WARNING hard-coded
 	# Criteria for valid placement:
@@ -1013,15 +1028,29 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	# deal with valid placement spots
 	if not _card.has("subtype"): # card is NOT an entity, special, or environment, (invalid card),
 		canPlace = false
+	elif location[0] < 0 or location[0] >= gridHeight or location[1] < 0 or location[1] >= gridWidth:
+		canPlace = false
 	elif _card.subtype == "Entity":
 		# make sure there is a free spot on the board AND the player has played the card on their side of the field
 		canPlace = canPlace and activeCards[location[0]][location[1]] == null
 		# make sure the player has played the card on their side of the field
 		canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
 		
-		# CRITICAL TODO make sure the card is eligible to play as either the front or back
+		# make sure that the card can be played on the front/back lane
+		# WARNING hard-coded
+		match location[0]:
+			0, 3: # inner cards
+				if not _card.content.isBackCard:
+					canPlace = false
+			1, 2: # outer cards
+				if not _card.content.isFrontCard:
+					canPlace = false
+			_: # weird, invalid location?
+				print_debug("Something weird happened with this location: " + str(location[0]) + ", " + str(location[1]))
+		
 	elif _card.subtype == "Special":
 		# CRITICAL TODO make sure the move actually has an affect on a card
+		# TODO make this directly call for animations?
 		canPlace = canPlace and findTarget(_card.content.move.subtype, location[0], location[1]) != null
 	elif _card.subtype == "Environment":
 		pass

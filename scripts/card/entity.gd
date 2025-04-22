@@ -3,6 +3,10 @@ class_name Entity extends Card
 @export var health : int = 1
 @export var hpr : int = 0
 @export var shield : int = 0
+# Can the card be placed in the front?
+@export var isFrontCard : bool
+# Can the card be placed in the back?
+@export var isBackCard : bool
 
 var defenseMultiplier: float = 1 # divides damage done to the current card
 var defenseBonus: int = 0 # linear---danage reduction after defense multiplier
@@ -63,6 +67,8 @@ func serialize() -> Dictionary:
 			"shield": shield,
 			"defenseMultiplier": defenseMultiplier,
 			"defenseBonus": defenseBonus,
+			"isFrontCard": isFrontCard,
+			"isBackCard": isBackCard,
 			"aggressive": aggressive,
 			# CRITICAL this will not work as intended because this attribute depends on a custom class
 			"statusEffects": statusEffects,
@@ -116,6 +122,12 @@ func deserialize(_object: Dictionary) -> void:
 	if _object.content.has("statusEffects") and _object.content.statusEffects != statusEffects:
 		statusEffects = _object.content.statusEffects
 		# TODO emit signal
+		
+	if _object.content.has("isFrontCard") and _object.content.isFrontCard:
+		isFrontCard = true
+		
+	if _object.content.has("isBackCard") and _object.content.isBackCard:
+		isBackCard = true
 	
 	# TODO status effects
 	

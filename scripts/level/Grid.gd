@@ -14,7 +14,7 @@ var gridTiles: Array[Array] = []
 ## Intends to ONLY store Controls. Unfortunately, Godot does not support nested arrays with typing yet.
 ## Indexes should correspond EXACTLY with gridTiles
 @export var activeCards: Array[Array] = []
-## Stores the reference to the gridtile
+## Stores the reference to the gridtile.
 @export var activeGridTile: Control
 ## Utility RNG to be used for visuals, where being truly random does not matter at all.
 var utilityRNG = RandomNumberGenerator.new()
@@ -82,10 +82,10 @@ func _on_card_placement(card: Control) -> void:
 	#print("Someone tried to play a card!: ", card)
 	# tell the card to approach the activeGridTile
 	# you also have to place the card in the right spot
-	print(activeGridTile != null)
-	print(Lobby.playerNumbers[Lobby.myID])
-	if activeGridTile != null:
-		print(Lobby.findGridTileOwner(activeGridTile.get_meta("id") as Array[int]))
+	#print(activeGridTile != null)
+	#print(Lobby.playerNumbers[Lobby.myID])
+	#if activeGridTile != null:
+		#print(Lobby.findGridTileOwner(activeGridTile.get_meta("id") as Array[int]))
 	if (activeGridTile != null) and Lobby.playerNumbers[Lobby.myID] == Lobby.findGridTileOwner(activeGridTile.get_meta("id")):
 		lastCardPlacementRequest = {
 			"card": card,
