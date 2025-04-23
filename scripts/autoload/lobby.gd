@@ -1034,7 +1034,11 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		# make sure there is a free spot on the board AND the player has played the card on their side of the field
 		canPlace = canPlace and activeCards[location[0]][location[1]] == null
 		# make sure the player has played the card on their side of the field
-		canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
+		# WARNING hard-coded
+		if (playerNumbers[id] == myID): # P1
+			canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
+		else:
+			canPlace = canPlace and playerNumbers[id] == findGridTileOwner(flipCoords(location))
 		
 		# make sure that the card can be played on the front/back lane
 		# WARNING hard-coded
