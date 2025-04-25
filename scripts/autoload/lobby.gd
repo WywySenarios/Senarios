@@ -387,13 +387,13 @@ func deserialize(_object: Dictionary) -> Variant:
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
 func flipCoords(coords: Array[int]) -> Array[int]:
 	@warning_ignore("integer_division")
-	return [gridHeight / 2 - coords[0], coords[1]] as Array[int]
+	return [gridHeight - 1 - coords[0], coords[1]] as Array[int]
 
 ## Flips the y-coordinate.
 ## Use when correcting for Player 2's perspective difference, or when looking for the opposing side's object location.
 func flipCoord(coord: int) -> int:
 	@warning_ignore("integer_division")
-	return gridHeight / 2 - coord
+	return gridHeight -1 - coord
 
 ## Returns who owns the respective grid tile.
 ## Input is expected to be Array[int] or int.
@@ -620,7 +620,10 @@ func giveHealth(targetIDs: Array[int], healthCount: int):
 func battle(lane: int):
 	if multiplayer.is_server():
 		# have all (both) cards attack each other at the same time
-		var cardsInLane: Array[Control] = activeCards[lane]
+		var cardsInLane: Array = []
+		cardsInLane.resize(Lobby.gridHeight)
+		for i in range(Lobby.gridHeight):
+			cardsInLane[i] = activeCards[i][lane]
 		var nextCard = null
 		var nextCardCard = null
 		for i in range(gridHeight):
@@ -1013,8 +1016,8 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 	var playerNumber = playerNumbers[id]
 	var inventoryIndex = players[id].serializedInventory().find(_card)
 	var originalLocation: Array[int] = location
-	#if id != 1:
-		#location = flipCoords(location)
+	if id != 1:
+		location = flipCoords(location)
 	
 	# WARNING hard-coded
 	# Criteria for valid placement:
@@ -1038,7 +1041,7 @@ func requestCardPlacement(id: int, _card: Dictionary, location: Array[int]):
 		if (playerNumbers[id] == myID): # P1
 			canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
 		else:
-			canPlace = canPlace and playerNumbers[id] == findGridTileOwner(flipCoords(location))
+			canPlace = canPlace and playerNumbers[id] == findGridTileOwner(location)
 		
 		# make sure that the card can be played on the front/back lane
 		# WARNING hard-coded
