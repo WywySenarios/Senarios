@@ -621,8 +621,8 @@ func battle(lane: int):
 	if multiplayer.is_server():
 		# have all (both) cards attack each other at the same time
 		var cardsInLane: Array = []
-		cardsInLane.resize(Lobby.gridHeight)
-		for i in range(Lobby.gridHeight):
+		cardsInLane.resize(gridHeight)
+		for i in range(gridHeight):
 			cardsInLane[i] = activeCards[i][lane]
 		var nextCard = null
 		var nextCardCard = null

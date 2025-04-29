@@ -27,7 +27,7 @@ func execute(_target: Variant, attacker: Card) -> Array[Dictionary]:
 	
 	var output: Array[Dictionary] = []
 	for i in range(Lobby.gridHeight):
-		for a in range(Lobby.gridLength):
+		for a in range(Lobby.gridWidth):
 			if Lobby.activeCards[i][a] != null:
 				var moveActive = false
 				var matchesAnyCriterion = false
